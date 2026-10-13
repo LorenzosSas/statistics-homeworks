@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HW01 - Elliptic Curve Cryptography</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Public-Key Cryptography on Elliptic Curves</h1>
+
+    <section id="params">
+        <h2>Curve Parameters</h2>
+        <p>Curve: y² = x³ + 7 (mod 17)</p>
+        <p>Base point G = (1, 5)</p>
+        <p>Private key k = 6</p>
+    </section>
+
+    <section id="steps">
+        <h2>Scalar Multiplication Steps</h2>
+        <div id="steps-output"></div>
+    </section>
+
+    <section id="result">
+        <h2>Public Key</h2>
+        <div id="result-output"></div>
+    </section>
+
+    <section id="stats">
+        <h2>Statistical Exploration</h2>
+        <div id="stats-output"></div>
+    </section>
+
+    <script src="logic.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
