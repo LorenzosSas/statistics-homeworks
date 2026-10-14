@@ -46,6 +46,14 @@ function testsCurvePointAddition() {
 function testsMultiplyPointScalar() {
     console.log("Tests for the multiplyPointScalar() function");
 
+    const k0 = multiplyPointScalar(0, BASE_POINT);
+    console.assert(k0.result === null, "Error: 0*G should return null result");
+    console.assert(k0.steps.length === 0, "Error: 0*G should return empty steps");
+
+    const nullPoint = multiplyPointScalar(6, null);
+    console.assert(nullPoint.result === null, "Error: k*null should return null result");
+    console.assert(nullPoint.steps.length === 0, "Error: k*null should return empty steps");
+
     const k1 = multiplyPointScalar(1, BASE_POINT);
     console.assert(k1.result !== null && k1.result.x === BASE_POINT.x && k1.result.y === BASE_POINT.y,"Error: 1*G should be G itself");
 
@@ -65,7 +73,68 @@ function testsMultiplyPointScalar() {
 
     console.assert(k2.steps[0].point.x === BASE_POINT.x && k2.steps[0].point.y === BASE_POINT.y,"Error: the first step should always be G")
     console.log("\nFunction multiplyPointScalar() tests passed\n");
-    console.log("All tests passed.");
+}
+
+function testsMultiplyPointScalarFast() {
+    console.log("Tests for the multiplyPointScalarFast() function");
+
+    const k0 = multiplyPointScalarFast(0, BASE_POINT);
+    console.assert(k0 === null, "Error: 0*G should be null");
+
+    const nullPoint = multiplyPointScalarFast(6, null);
+    console.assert(nullPoint === null, "Error: k*null should return null");
+
+    const k1 = multiplyPointScalarFast(1, BASE_POINT);
+    console.assert(k1 !== null && k1.x === BASE_POINT.x && k1.y === BASE_POINT.y, "Error: 1*G should be G itself");
+
+    const k6 = multiplyPointScalarFast(6, BASE_POINT);
+    console.assert(k6 !== null && k6.x === 5 && k6.y === 8, `Error: 6*G should be {x: 5, y: 8}, got`, k6);
+
+    const k18 = multiplyPointScalarFast(18, BASE_POINT);
+    console.assert(k18 === null, "Error: 18*G should be null (group order)");
+
+    console.log("\nFunction multiplyPointScalarFast() tests passed.\n");
+}
+
+function testsComputeScalarMultiplication() {
+    console.log("Tests for the computeScalarMultiplication() function");
+
+    const k0 = computeScalarMultiplication(0, BASE_POINT);
+    console.assert(k0.result === null, "Error: 0*G should return null result");
+    console.assert(k0.steps.length === 0, "Error: 0*G should return empty steps");
+    console.assert(k0.fastMethodUsed === false, "Error: 0*G should have fastMethodUsed false");
+
+    const nullPoint = computeScalarMultiplication(6, null);
+    console.assert(nullPoint.result === null, "Error: k*null should return null result");
+    console.assert(nullPoint.steps.length === 0, "Error: k*null should return empty steps");
+    console.assert(nullPoint.fastMethodUsed === false, "Error: k*null should have fastMethodUsed false");
+
+    const slow = computeScalarMultiplication(6, BASE_POINT);
+    console.assert(slow.fastMethodUsed === false, "Error: k=6 should use the slow method");
+    console.assert(slow.steps.length === 6, "Error: steps length should equal k when using slow method");
+    console.assert(slow.result !== null && slow.result.x === 5 && slow.result.y === 8, `Error: 6*G should be {x: 5, y: 8}, got`, slow.result);
+
+    const fast = computeScalarMultiplication(MAX_SEQUENTIAL_THRESHOLD + 1, BASE_POINT);
+    console.assert(fast.fastMethodUsed === true, "Error: k > MAX_SEQUENTIAL_THRESHOLD should use the fast method");
+    console.assert(fast.steps.length === 3, "Error: fast method should return exactly 3 steps");
+
+    const direct = multiplyPointScalar(6, BASE_POINT).result;
+    console.assert(slow.result !== null && slow.result.x === direct.x && slow.result.y === direct.y, "Error: computeScalarMultiplication and multiplyPointScalar should agree on k=6");
+
+    console.log("\nFunction computeScalarMultiplication() tests passed.\n");
+}
+
+function testsSlowFastConsistency() {
+    console.log("Consistency tests between slow and fast methods");
+
+    [1, 2, 3, 6, 10, 17].forEach(k => {
+        const slow = multiplyPointScalar(k, BASE_POINT).result;
+        const fast = multiplyPointScalarFast(k, BASE_POINT);
+        const match = (slow === null && fast === null) || (slow !== null && fast !== null && slow.x === fast.x && slow.y === fast.y);
+        console.assert(match, `Error: slow and fast methods disagree at k=${k}. Slow:`, slow, "Fast:", fast);
+    });
+
+    console.log("\nConsistency tests passed.\n");
 }
 
 function runTests() {
@@ -76,6 +145,14 @@ function runTests() {
     testsCurvePointAddition();
 
     testsMultiplyPointScalar();
+
+    testsMultiplyPointScalarFast();
+
+    testsComputeScalarMultiplication();
+
+    testsSlowFastConsistency();
+
+    console.log("All tests passed.");
 }
 
 runTests();
