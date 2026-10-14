@@ -4,6 +4,7 @@ const CURVE_PARAM_B = 7;
 const BASE_POINT= {x: 1, y: 5};
 const PRIVATE_KEY = 6;
 const mod = (n, m) => ((n % m ) + m) % m;
+const MAX_SEQUENTIAL_THRESHOLD = 1000;
 
 function modInverse(num, modulo) {
     num = mod(num, modulo);
@@ -55,6 +56,7 @@ function curvePointAddition(point1, point2) {
 }
 
 function multiplyPointScalar(scalar, point) {
+    if (scalar === 0 || point === null) return {result: null, steps: []};
     let currResult = null;
     const execSteps = [];
 
@@ -71,4 +73,39 @@ function multiplyPointScalar(scalar, point) {
         result: currResult,
         steps: execSteps
     };
+}
+
+function multiplyPointScalarFast(scalar, point) {
+    if (scalar === 0 || point === null) return null;
+
+    let result = null;
+    let currDouble = {...point};
+    let remainingScalar = scalar;
+
+    while (remainingScalar > 0) {
+        if ((remainingScalar & 1) === 1) result = curvePointAddition(result, currDouble);
+        currDouble = curvePointAddition(currDouble, currDouble);
+        remainingScalar >>= 1;
+    }
+
+    return result;
+}
+
+function computeScalarMultiplication(scalar, point) {
+    if (scalar === 0 || point === null) return {result: null, steps: [], fastMethodUsed: false};
+    if (scalar <= MAX_SEQUENTIAL_THRESHOLD) {
+        return {...multiplyPointScalar(scalar, point), fastMethodUsed: false};
+    } else {
+        const finalPoint = multiplyPointScalarFast(scalar, point);
+
+        return {
+            result: finalPoint,
+            steps: [
+                {step: 1, point: {...point}},
+                {step: "...", point: null},
+                {step: scalar, point: finalPoint ? {...finalPoint} : null}
+            ],
+            fastMethodUsed: true
+        };
+    }
 }
