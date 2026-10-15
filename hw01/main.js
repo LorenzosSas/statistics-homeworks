@@ -100,11 +100,11 @@ function compute() {
     const hasAvalanche = parseFloat(avgBits) > 1.5;
 
     document.getElementById("hash-output").innerHTML = `
-        <p>Deterministic: ✓ Yes</p>
-        <p>One-way (ECDLP): ✓ Yes</p>
-        <p>Avalanche behaviour: ${hasAvalanche ? "✓ Yes" : "✕ No"}</p>
-        <p>Fixed-length output (like hash): ✕ No</p>
-        <p>Collision resistance within group order: ✓ Yes</p>
+        <p>Deterministic: ✓</p>
+        <p>One-way (ECDLP): ✓</p>
+        <p>Avalanche behaviour: ${hasAvalanche ? "✓" : "✕"}</p>
+        <p>Fixed-length output (like hash): ✕</p>
+        <p>Collision resistance within group order: ✓</p>
     `;
 }
 
