@@ -33,13 +33,18 @@ function avalancheTest(basePoint, maxK) {
 
     for (let i = 1; i <= maxK; i++) {
         const {result} = multiplyPointScalar(i, basePoint);
-        if (result) results.push({k: i, point: { ...result }});
+        results.push({k: i, point: result ? {...result} : null});
     }
 
     const diffs = [];
     for (let i = 0; i < results.length - 1; i++) {
         const p1 = results[i].point;
         const p2 = results[i + 1].point;
+        
+        if (!p1 || !p2) {
+            diffs.push({k: results[i].k, bitsChanged: null});
+            continue;
+        }
         const bitsChanged = hammingDistance(p1.x, p2.x) + hammingDistance(p1.y, p2.y);
         diffs.push({k: results[i].k, bitsChanged});
     }
