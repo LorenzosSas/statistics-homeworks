@@ -83,7 +83,7 @@ document.getElementById('stats-btn').addEventListener('click', async () => {
         const eip55 = eip55UppercaseDistribution(addresses);
 
         const avalancheRows = avalanche.results.map(r => 
-            <p>Bit ${r.bit} flipped: ${r.bitsChanged} bits changed (${r.percentage}%)</p>
+            `<p>Bit ${r.bit} flipped: ${r.bitsChanged} bits changed (${r.percentage}%)</p>`
         ).join('');
 
         statsOutput.innerHTML = `
@@ -120,6 +120,6 @@ document.getElementById('stats-btn').addEventListener('click', async () => {
             </div>
         `;
     } catch (err) {
-        statsOutput.innerHTML = <p class="error">Error: ${err.message}</p>;
+        statsOutput.innerHTML = `<p class="error">Error: ${err.message}</p>`;
     }
 });
