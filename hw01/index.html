@@ -5,15 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HW01 - Elliptic Curve Cryptography</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
 </head>
 <body>
+
     <h1>Public-Key Cryptography on Elliptic Curves</h1>
 
+    <section id="summary">
+        <h2>Executive Summary</h2>
+        <p>
+            This project implements a web-based educational simulator to demonstrate 
+            Elliptic Curve Scalar Multiplication (\(Q = kG\)) over a finite field 
+            \(\mathbb{F}_{17}\). The core implementation transitions between an intuitive 
+            sequential addition method (\(O(k)\)) for lower scalars and the cryptographic 
+            standard Double-and-Add algorithm (\(O(\log k)\)) for high-performance calculations.
+        </p>
+        <p>
+            Beyond the deterministic forward computation, a statistical evaluation was conducted 
+            on the group structure to assess coordinate distribution, bit entropy, and chaotic 
+            behavior, mapping these characteristics against the formal requirements of 
+            Cryptographic One-Way Functions and Cryptographic Hash Functions.
+        </p>
+    </section>
+
+    <section id="math">
+        <h2>Mathematical Framework</h2>
+        <p>
+            The system models the elliptic curve group \(y^2 \equiv x^3 + 7 \pmod{17}\) 
+            incorporating the Point at Infinity (\(\infty\)) as the additive identity element.
+        </p>
+        <p>
+            The modular inverse is computed via the Extended Euclidean Algorithm:
+            \[\gcd(a,p) = a \cdot s + p \cdot t = 1 \implies a^{-1} \equiv s \pmod{p}\]
+        </p>
+        <p>
+            To satisfy the dual constraint of listing linear execution histories while 
+            guaranteeing performance on large inputs, a dispatcher manages execution:
+        </p>
+        <ul>
+            <li>\(k \leq 1000\) - Sequential mode: tracks explicit steps \(1G, 2G, \dots, kG\)</li>
+            <li>\(k > 1000\) - Double-and-Add mode: processes scalar via bitwise operations, 
+            reducing complexity from \(O(k)\) to \(O(\log k)\)</li>
+        </ul>
+    </section>
+
     <section id="params">
-        <h2>Curve Parameters</h2>
-        <p>Curve: y² = x³ + 7 (mod 17)</p>
-        <p>Base point G = (1, 5)</p>
-        <p>Private key k = 6</p>
+        <h2>Simulator</h2>
+        <p>Curve: \(y^2 \equiv x^3 + 7 \pmod{17}\)</p>
+        <div class="controls">
+            <label for="g-select">Base point G:</label>
+            <select id="g-select"></select>
+            <label for="k-input">Private key k:</label>
+            <input type="number" id="k-input" value="6" min="1">
+            <button id="compute-btn">Compute</button>
+        </div>
+    </section>
+
+    <section id="visualization">
+        <h2>Scalar Multiplication - Step by Step</h2>
+        <canvas id="ec-canvas" width="500" height="500"></canvas>
+        <div id="anim-controls">
+            <button id="start-btn">&#9654; Start</button>
+            <button id="reset-btn">&#8635; Reset</button>
+            <p id="anim-step"></p>
+        </div>
     </section>
 
     <section id="steps">
@@ -22,16 +77,123 @@
     </section>
 
     <section id="result">
-        <h2>Public Key</h2>
+        <h2>Toy Public Key</h2>
         <div id="result-output"></div>
     </section>
 
-    <section id="stats">
-        <h2>Statistical Exploration</h2>
-        <div id="stats-output"></div>
+    <section id="group">
+        <h2>Group Structure</h2>
+        <p>
+            By scanning the entire finite space \(\mathbb{F}_{17}^2\), the script identifies 
+            all valid points lying on the curve. Iterating addition from the base point yields 
+            the cyclic subgroup. The group has 8 affine points plus the point at infinity, 
+            giving a group order of 9: \(9G = \infty\).
+        </p>
+        <div id="group-output"></div>
+    </section>
+
+    <section id="freq">
+        <h2>Coordinate Distribution</h2>
+        <p>
+            The absolute frequency of coordinates \(x\) and \(y\) across the group shows 
+            apparent uniform scattering. Because points jump unpredictably over the plane 
+            as \(k\) increments, an observer cannot deduce the neighborhood of \(k\) from 
+            coordinate proximity.
+        </p>
+        <div id="freq-output"></div>
+    </section>
+
+    <section id="bits">
+        <h2>Bit Distribution</h2>
+        <p>
+            Converting coordinates to binary representation allows tracking bit density. 
+            An ideal entropy goal is a 50% ratio of 1-bits to 0-bits. High entropy prevents 
+            frequency analysis attacks.
+        </p>
+        <div id="bits-output"></div>
+    </section>
+
+    <section id="avalanche">
+        <h2>Avalanche Effect</h2>
+        <p>
+           The Hamming Distance between consecutive output points \(Q_k = kG\) and 
+            \(Q_{k+1} = (k+1)G\) measures how many bits flip when \(k\) increments by one.
+            A high average indicates chaotic, unpredictable behavior.
+        </p>
+        <div id="avalanche-output"></div>
+    </section>
+
+    <section id="hash">
+        <h2>ECC vs Hash Functions</h2>
+        <p>
+            The table below maps the observed properties against the formal requirements 
+            of asymmetric one-way functions and cryptographic hash functions.
+        </p>
+        <div id="hash-output"></div>
+    </section>
+
+    <section id="discussion">
+        <h2>Discussion</h2>
+        <p>
+            Properties meaningful for a <strong>cryptographic one-way function (ECC)</strong>:
+        </p>
+        <ul>
+            <li>
+                <strong>Hard inversion (ECDLP):</strong> computing \(Q = kG\) is trivial via 
+                Double-and-Add, but finding \(k\) from \(Q\) requires solving the Elliptic Curve 
+                Discrete Logarithm Problem. On this toy curve (\(\mathbb{F}_{17}\)) a lookup table 
+                suffices, but over \(\mathbb{F}_p\) where \(p \approx 2^{256}\) it becomes 
+                computationally intractable.
+            </li>
+            <li>
+                <strong>Absence of subgroup collisions:</strong> within the generator's order, 
+                every \(k\) maps to a unique point \(Q\). This collision resistance inside the 
+                mathematical group is crucial for key pair integrity.
+            </li>
+            <li>
+                <strong>Lack of linear correlation:</strong> public keys derived from close 
+                private keys (e.g. \(k=6\) and \(k=7\)) share no linear trajectory (an 
+                asymmetric one-way function must guarantee this).
+            </li>
+        </ul>
+        <p>
+            Properties specifically associated with <strong>cryptographic hash functions</strong>:
+        </p>
+        <ul>
+            <li>
+                <strong>Strict avalanche criterion:</strong> while ECC exhibits chaotic jumps 
+                between inputs, true hash functions mandate that changing a single input bit 
+                flips exactly 50% of output bits on average. In ECC this is a byproduct of 
+                modular arithmetic; in hash functions it is engineered explicitly via 
+                bit-scrambling rounds.
+            </li>
+            <li>
+                <strong>Fixed-size output:</strong> a hash function compresses any 
+                variable-length input into an identical output size (e.g. 256 bits for SHA-256). 
+                Elliptic curve points are mathematical coordinates whose bit-length varies 
+                depending on the field size.
+            </li>
+        </ul>
+    </section>
+
+    <section id="conclusion">
+        <h2>Conclusion</h2>
+        <p>
+            While elliptic curve multiplication displays practical commonalities with 
+            cryptographic hashing, like determinism, high output entropy, and apparent spatial 
+            uniformity, it is fundamentally separated by its strict algebraic structure. 
+            Hash functions are designed to destroy all mathematical relations to enforce 
+            one-way security. Elliptic curves retain a precise geometric group structure 
+            that protects against reverse engineering through the hardness of the ECDLP, 
+            enabling the mathematical trapdoors required for public-key cryptography and 
+            digital signatures such as Ethereum's ECDSA.
+        </p>
     </section>
 
     <script src="logic.js"></script>
+    <script src="stats.js"></script>
     <script src="main.js"></script>
+    <script src="animation.js"></script>
+
 </body>
 </html>
