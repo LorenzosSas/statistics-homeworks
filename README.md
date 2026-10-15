@@ -17,4 +17,4 @@ The project is built using standard web technologies with minimal external depen
 * HTML5
 * CSS3
 * Vanilla JavaScript (ES6+)
-* [MathJax 3.2.2](https://www.mathjax.org/) — LaTeX formula rendering (loaded via CDN, no API key required)
+* [MathJax 3.2.2](https://www.mathjax.org/) - LaTeX formula rendering (loaded via CDN)
