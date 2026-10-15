@@ -1,3 +1,5 @@
+const BASE_POINT = {x: 1, y: 5};
+
 function testsMod() {
     console.log("Tests for the mod() function");
     console.assert(mod(5, 3) === 2, "Error: mod(5, 3) should be 2");
@@ -137,21 +139,125 @@ function testsSlowFastConsistency() {
     console.log("\nConsistency tests passed.\n");
 }
 
+function testsComputeValidCurvePoints() {
+    console.log("Tests for computeValidCurvePoints()");
+
+    const points = computeValidCurvePoints();
+
+    console.assert(points.length === 17, `Error: expected 17 valid points, got ${points.length}`);
+
+    points.forEach(({x, y}) => {
+        const lhs = mod(y * y, CURVE_PRIME);
+        const rhs = mod(mod((x ** 3), CURVE_PRIME) + CURVE_PARAM_B, CURVE_PRIME);
+        console.assert(lhs === rhs, `Error: point (${x}, ${y}) is not on the curve`);
+    });
+
+    const hasBasePoint = points.some(p => p.x === BASE_POINT.x && p.y === BASE_POINT.y);
+    console.assert(hasBasePoint, "Error: BASE_POINT should be among the valid curve points");
+
+    console.log("\ncomputeValidCurvePoints() tests passed.\n");
+}
+
+function testsComputeGroupPoints() {
+    console.log("Tests for computeGroupPoints()");
+
+    const points = computeGroupPoints(BASE_POINT);
+
+    console.assert(points.length === 8, `Error: expected 8 group points, got ${points.length}`);
+
+    console.assert(
+        points[0].x === BASE_POINT.x && points[0].y === BASE_POINT.y,
+        "Error: first point should be the base point"
+    );
+
+    points.forEach(({x, y}) => {
+        const lhs = mod(y * y, CURVE_PRIME);
+        const rhs = mod(mod((x ** 3), CURVE_PRIME) + CURVE_PARAM_B, CURVE_PRIME);
+        console.assert(lhs === rhs, `Error: group point (${x}, ${y}) is not on the curve`);
+    });
+
+    console.log("\ncomputeGroupPoints() tests passed.\n");
+}
+
+function testsCoordFrequency() {
+    console.log("Tests for coordFrequency()");
+
+    const points = [
+        {x: 1, y: 5},
+        {x: 1, y: 10},
+        {x: 2, y: 5}
+    ];
+
+    const {freqX, freqY} = coordFrequency(points);
+
+    console.assert(freqX[1] === 2, "Error: x=1 should appear 2 times");
+    console.assert(freqX[2] === 1, "Error: x=2 should appear 1 time");
+    console.assert(freqY[5] === 2, "Error: y=5 should appear 2 times");
+    console.assert(freqY[10] === 1, "Error: y=10 should appear 1 time");
+
+    const {freqX: fx, freqY: fy} = coordFrequency([{x: 3, y: 7}]);
+    console.assert(fx[3] === 1, "Error: single point x frequency should be 1");
+    console.assert(fy[7] === 1, "Error: single point y frequency should be 1");
+
+    console.log("\ncoordFrequency() tests passed.\n");
+}
+
+function testsBitDistribution() {
+    console.log("Tests for bitDistribution()");
+
+    const points = [{x: 1, y: 2}];
+    const {zeros, ones, ratio} = bitDistribution(points);
+
+    console.assert(zeros === 1, `Error: expected 1 zero, got ${zeros}`);
+    console.assert(ones === 2, `Error: expected 2 ones, got ${ones}`);
+    console.assert(Math.abs(ratio - (2/3)) < 0.001, `Error: expected ratio ~0.667, got ${ratio}`);
+
+    const empty = bitDistribution([]);
+    console.assert(isNaN(empty.ratio), "Error: ratio of empty list should be NaN");
+
+    console.log("\nbitDistribution() tests passed.\n");
+}
+
+function testsHammingDistance() {
+    console.log("Tests for hammingDistance()");
+
+    console.assert(hammingDistance(0, 0) === 0, "Error: hammingDistance(0, 0) should be 0");
+    console.assert(hammingDistance(1, 0) === 1, "Error: hammingDistance(1, 0) should be 1");
+    console.assert(hammingDistance(5, 3) === 2, "Error: hammingDistance(5, 3) should be 2");
+    console.assert(hammingDistance(15, 0) === 4, "Error: hammingDistance(15, 0) should be 4");
+
+    console.log("\nhammingDistance() tests passed.\n");
+}
+
+function testsAvalancheTest() {
+    console.log("Tests for avalancheTest()");
+
+    const {results, diffs} = avalancheTest(BASE_POINT, 6);
+    console.assert(results.length === 6, `Error: expected 6 results, got ${results.length}`);
+
+    console.assert(diffs.length === results.length - 1, "Error: diffs length should be results.length - 1");
+
+    diffs.forEach(({k, bitsChanged}) => {
+        console.assert(bitsChanged >= 0, `Error: bitsChanged should be >= 0 for k=${k}`);
+    });
+
+    console.log("\navalancheTest() tests passed.\n");
+}
+
 function runTests() {
     testsMod();
-
     testsModInverse();
-
     testsCurvePointAddition();
-
     testsMultiplyPointScalar();
-
     testsMultiplyPointScalarFast();
-
     testsComputeScalarMultiplication();
-
     testsSlowFastConsistency();
-
+    testsComputeValidCurvePoints();
+    testsComputeGroupPoints();
+    testsCoordFrequency();
+    testsBitDistribution();
+    testsHammingDistance();
+    testsAvalancheTest();
     console.log("All tests passed.");
 }
 

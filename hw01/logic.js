@@ -1,8 +1,6 @@
 const CURVE_PRIME = 17;
 const CURVE_PARAM_A = 0;
 const CURVE_PARAM_B = 7;
-const BASE_POINT= {x: 1, y: 5};
-const PRIVATE_KEY = 6;
 const mod = (n, m) => ((n % m ) + m) % m;
 const MAX_SEQUENTIAL_THRESHOLD = 1000;
 
@@ -108,4 +106,28 @@ function computeScalarMultiplication(scalar, point) {
             fastMethodUsed: true
         };
     }
+}
+
+function computeValidCurvePoints() {
+    const points = [];
+    for (let x = 0; x < CURVE_PRIME; x++) {
+        for (let y = 0; y < CURVE_PRIME; y++) {
+            const lhs = mod((y * y), CURVE_PRIME);
+            const rhs = mod(mod((x ** 3), CURVE_PRIME) + CURVE_PARAM_B, CURVE_PRIME);
+            if (lhs === rhs) points.push({x, y});
+        }
+    }
+    return points;
+}
+
+function computeGroupPoints(basePoint) {
+    const points = [];
+    let current = basePoint;
+
+    while (current !== null) {
+        points.push({...current});
+        current = curvePointAddition(current, basePoint);
+     }
+
+    return points;
 }
