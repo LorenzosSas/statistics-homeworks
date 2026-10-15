@@ -87,6 +87,7 @@ function compute() {
 
     const validDiffs = avalanche.diffs.filter(d => d.bitsChanged !== null);
     const avgBits = (validDiffs.reduce((acc, d) => acc + d.bitsChanged, 0) / validDiffs.length).toFixed(2);
+    const avalancheOutput = document.getElementById("avalanche-output");
     avalancheOutput.innerHTML = `<p>Average bits changed between consecutive keys: ${avgBits}</p>`;
     avalanche.diffs.forEach(({k, bitsChanged}) => {
         const p = document.createElement("p");
@@ -95,9 +96,8 @@ function compute() {
             : `k=${k} → k=${k+1}: → point at infinity`;
         avalancheOutput.appendChild(p);
     });
-
-    const avgBitsChanged = avalanche.diffs.reduce((acc, d) => acc + d.bitsChanged, 0) / avalanche.diffs.length;
-    const hasAvalanche = avgBitsChanged > 1.5;
+    
+    const hasAvalanche = parseFloat(avgBits) > 1.5;
 
     document.getElementById("hash-output").innerHTML = `
         <p>Deterministic: ✓ Yes</p>
