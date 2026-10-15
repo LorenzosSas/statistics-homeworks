@@ -1,6 +1,6 @@
 # Statistics Homeworks
 
-Weekly homework assignments for the Statistics course — M.Sc. in Cybersecurity, Sapienza Università di Roma, A.Y. 2026/2027.
+Weekly homework assignments for the Statistics course - M.Sc. in Cybersecurity, Sapienza Università di Roma, A.Y. 2026/2027.
 
 ## Live Site
 
