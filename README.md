@@ -18,3 +18,6 @@ The project is built using standard web technologies with minimal external depen
 * CSS3
 * Vanilla JavaScript (ES6+)
 * [MathJax 3.2.2](https://www.mathjax.org/) - LaTeX formula rendering (loaded via CDN)
+
+## References
+- Corbellini, A. (2015). [Elliptic Curve Cryptography: a gentle introduction](https://andrea.corbellini.name/2015/05/17/elliptic-curve-cryptography-a-gentle-introduction/) 
