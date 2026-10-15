@@ -52,8 +52,12 @@ function drawPoint(x, y, color, label) {
     ctx.fillStyle = color;
     ctx.fill();
 
-    ctx.fillStyle = color;
     ctx.font = "bold 11px monospace";
+    const textWidth = ctx.measureText(label).width;
+    ctx.fillStyle = "#0d1117";
+    ctx.fillRect(cx + 7, cy - 20, textWidth + 4, 16);
+
+    ctx.fillStyle = color;
     ctx.fillText(label, cx + 8, cy - 8);
 }
 
