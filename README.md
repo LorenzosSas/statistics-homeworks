@@ -9,6 +9,7 @@ Weekly homework assignments for the Statistics course - M.Sc. in Cybersecurity, 
 ## Homeworks
 
 - [HW01 - Public-Key Cryptography on Elliptic Curves](https://lorenzossas.github.io/statistics-homeworks/hw01)
+- [HW02 - From Wallet Seed to Ethereum Address](https://lorenzossas.github.io/statistics-homeworks/hw02)
 
 ## Tech Stack
 
