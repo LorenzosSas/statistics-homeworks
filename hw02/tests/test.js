@@ -6,6 +6,13 @@ import {
     bytesToHex
 } from '../pipeline.js';
 
+import {
+    avalancheKeccak,
+    bitDistributionKeccak,
+    eip55UppercaseDistribution
+} from '../stats.js';
+
+
 function testsGenerateMnemonic() {
     console.log("Tests for generateMnemonic()");
 
@@ -15,6 +22,7 @@ function testsGenerateMnemonic() {
     console.assert(words.length === 12, `Error: expected 12 words, got ${words.length}`);
     console.assert(typeof mnemonic === 'string', "Error: mnemonic should be a string");
     console.assert(mnemonic.length > 0, "Error: mnemonic should not be empty");
+
     const mnemonic2 = generateMnemonic();
     console.assert(mnemonic !== mnemonic2, "Error: two generated mnemonics should differ");
 
@@ -31,7 +39,8 @@ function testsValidateMnemonic() {
 
     console.assert(validateMnemonic("") === false, "Error: empty string should return false");
 
-    console.assert(validateMnemonic("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon") === false, "Error: wrong checksum should return false");
+    console.assert(validateMnemonic("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon") === false, 
+        "Error: wrong checksum should return false");
 
     console.log("\nvalidateMnemonic() tests passed.\n");
 }
@@ -79,15 +88,14 @@ function testsToChecksumAddress() {
         {input: '0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed', expected: '0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed'},
     ];
 
-    known.forEach(({ input, expected }) => {
+    known.forEach(({input, expected}) => {
         const result = toChecksumAddress(input);
         console.assert(result === expected, `Error: expected ${expected}, got ${result}`);
     });
 
     const addr = '0x1234567890123456789012345678901234567890';
     const checksummed = toChecksumAddress(addr);
-    console.assert(checksummed.replace(/[A-F]/gi, '').toLowerCase() === addr.toLowerCase(),
-        "Error: checksum should not change numeric characters");
+    console.assert(checksummed.replace(/[A-F]/gi, '').toLowerCase() === addr.toLowerCase(),"Error: checksum should not change numeric characters");
 
     console.log("\ntoChecksumAddress() tests passed.\n");
 }
@@ -103,13 +111,71 @@ function testsBytesToHex() {
     console.log("\nbytesToHex() tests passed.\n");
 }
 
+function testsAvalancheKeccak() {
+    console.log("Tests for avalancheKeccak()");
+
+    const result = avalancheKeccak("test input");
+
+    console.assert(result.results.length === 8, `Error: expected 8 results (one per bit), got ${result.results.length}`);
+
+    result.results.forEach(({bit, bitsChanged, percentage}) => {
+        console.assert(bitsChanged >= 0 && bitsChanged <= 256, `Error: bitsChanged should be between 0 and 256 for bit ${bit}`);
+        console.assert(parseFloat(percentage) >= 0 && parseFloat(percentage) <= 100, `Error: percentage should be between 0 and 100 for bit ${bit}`);
+    });
+
+    console.assert(parseFloat(result.avgPercentage) > 30, `Error: expected avalanche > 30%, got ${result.avgPercentage}%`);
+
+    console.log("\navalancheKeccak() tests passed.\n");
+}
+
+function testsBitDistributionKeccak() {
+    console.log("Tests for bitDistributionKeccak()");
+
+    const inputs = ['hello', 'world', 'test'];
+    const result = bitDistributionKeccak(inputs);
+
+    const expectedTotal = inputs.length * 256;
+    console.assert(result.zeros + result.ones === expectedTotal, `Error: zeros + ones should be ${expectedTotal}, got ${result.zeros + result.ones}`);
+
+    console.assert(parseFloat(result.ratio) >= 0 && parseFloat(result.ratio) <= 100, "Error: ratio should be between 0 and 100");
+
+    console.assert(parseFloat(result.ratio) > 40 && parseFloat(result.ratio) < 60,`Error: expected ratio close to 50%, got ${result.ratio}%`);
+
+    console.log("\nbitDistributionKeccak() tests passed.\n");
+}
+
+function testsEip55UppercaseDistribution() {
+    console.log("Tests for eip55UppercaseDistribution()");
+
+    const addresses = [
+        '0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359',
+        '0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed'
+    ];
+
+    const result = eip55UppercaseDistribution(addresses);
+
+    console.assert(result.results.length === addresses.length, `Error: expected ${addresses.length} results, got ${result.results.length}`);
+
+    result.results.forEach(({ratio}) => {
+        console.assert(parseFloat(ratio) >= 0 && parseFloat(ratio) <= 100, `Error: ratio should be between 0 and 100, got ${ratio}`);
+    });
+
+    console.assert(parseFloat(result.avgUppercase) >= 0 && parseFloat(result.avgUppercase) <= 100,
+        "Error: avgUppercase should be between 0 and 100");
+
+    console.log("\neip55UppercaseDistribution() tests passed.\n");
+}
+
 async function runTests() {
     testsGenerateMnemonic();
     testsValidateMnemonic();
     await testsRunPipeline();
     testsToChecksumAddress();
     testsBytesToHex();
+    testsAvalancheKeccak();
+    testsBitDistributionKeccak();
+    testsEip55UppercaseDistribution();
     console.log("All tests passed.");
 }
 
-runTests(); 
+runTests();
