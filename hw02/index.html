@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HW02 - Ethereum Wallet Pipeline</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+</head>
+<body>
+    <a href="../index.html" id="back-link">← Back to Homeworks</a>
+
+    <h1>From Wallet Seed to Ethereum Address</h1>
+
+    <section id="summary">
+        <h2>Executive Summary</h2>
+        <p>
+            This project implements a web-based simulator of the Ethereum wallet pipeline,
+            demonstrating the full cryptographic chain from a mnemonic phrase to a checksummed
+            Ethereum address. The pipeline combines key generation, key derivation, public-key
+            cryptography, hashing, and checksum encoding, each step handled by a distinct
+            cryptographic primitive.
+        </p>
+    </section>
+
+    <section id="history">
+        <h2>Historical Context</h2>
+        <p>
+            The technologies used in modern Ethereum wallets were developed over several decades:
+        </p>
+        <ul>
+            <li><strong>1977</strong> - RSA: first practical public-key cryptography system</li>
+            <li><strong>2001</strong> - SHA-2 / SHA-512: standardized by NIST</li>
+            <li><strong>2012</strong> - BIP-32: hierarchical deterministic wallets</li>
+            <li><strong>2013</strong> - BIP-39: mnemonic code for deterministic wallets</li>
+            <li><strong>2014</strong> - BIP-44: multi-account HD wallets</li>
+            <li><strong>2015</strong> - SHA-3: standardized by NIST, based on Keccak</li>
+            <li><strong>2016</strong> - EIP-55: mixed-case checksum for Ethereum addresses</li>
+        </ul>
+        <p>
+            Note: Ethereum uses <strong>Keccak-256</strong>, which is the original submission
+            to the SHA-3 competition. The standardized SHA3-256 differs from Keccak-256
+            in its padding convention - they are not interchangeable.
+        </p>
+    </section>
+
+    <section id="pipeline-desc">
+        <h2>Cryptographic Pipeline</h2>
+        <p>
+            The Ethereum wallet pipeline combines five distinct cryptographic techniques,
+            each serving a different purpose:
+        </p>
+        <ul>
+            <li>
+                <strong>BIP-39</strong> - Key generation: converts entropy into a human-readable
+                mnemonic phrase, then derives a 512-bit seed via PBKDF2-HMAC-SHA512.
+            </li>
+            <li>
+                <strong>BIP-32 / BIP-44</strong> - Key derivation: derives a hierarchical tree
+                of private keys from the master seed, following the standard Ethereum path
+                \(m/44'/60'/0'/0/0\).
+            </li>
+            <li>
+                <strong>secp256k1</strong> - Public-key cryptography: derives the public key
+                from the private key via elliptic-curve scalar multiplication \(Q = kG\).
+                This is the same one-way function explored in HW01.
+            </li>
+            <li>
+                <strong>Keccak-256</strong> - Hashing: hashes the public key to produce a
+                32-byte digest, of which the last 20 bytes form the Ethereum address.
+            </li>
+            <li>
+                <strong>EIP-55</strong> - Checksum encoding: encodes the address in mixed-case
+                hexadecimal to enable error detection without changing the address itself.
+            </li>
+        </ul>
+    </section>
+
+    <section id="distinctions">
+        <h2>Key Distinctions</h2>
+        <ul>
+            <li>
+                <strong>Key generation vs key derivation:</strong> BIP-39 generates the master
+                seed from entropy (generation); BIP-32/BIP-44 derive child keys from that seed
+                deterministically (derivation).
+            </li>
+            <li>
+                <strong>Public-key cryptography:</strong> secp256k1 provides the mathematical
+                trapdoor, easy to compute \(Q = kG\), hard to reverse (ECDLP).
+            </li>
+            <li>
+                <strong>Hashing:</strong> Keccak-256 compresses the 64-byte public key into a
+                32-byte digest. One-way, fixed-size output, collision resistant.
+            </li>
+            <li>
+                <strong>Checksums:</strong> EIP-55 encodes redundancy into the address
+                representation to detect typos, it does not add security.
+            </li>
+            <li>
+                <strong>Encoding:</strong> hexadecimal representation of binary data,
+                no cryptographic properties, purely a display convention.
+            </li>
+        </ul>
+    </section>
+
+    <section id="simulator">
+        <h2>Simulator</h2>
+        <div class="controls">
+            <label for="mnemonic-input">Mnemonic phrase:</label>
+            <textarea id="mnemonic-input" rows="3" 
+                placeholder="Enter 12 or 24 words separated by spaces, or generate one randomly..."></textarea>
+        </div>
+        <div class="controls">
+            <label for="passphrase-input">Passphrase (optional):</label>
+            <input type="text" id="passphrase-input" placeholder="Leave empty for standard derivation">
+        </div>
+        <div class="controls">
+            <button id="generate-btn">Generate Mnemonic</button>
+            <button id="derive-btn">Derive Address</button>
+        </div>
+        <p id="error-output" class="error"></p>
+    </section>
+
+    <section id="pipeline-output">
+        <h2>Pipeline Output</h2>
+
+        <div class="pipeline-step">
+            <h3>Mnemonic → Seed (BIP-39)</h3>
+            <p class="step-label">Seed (512-bit):</p>
+            <p id="seed-output" class="hex-output"></p>
+        </div>
+
+        <div class="pipeline-step">
+            <h3>Seed → Private Key (BIP-32 / BIP-44)</h3>
+            <p class="step-label">Derivation path: <span id="path-output"></span></p>
+            <p class="step-label">Private Key (256-bit):</p>
+            <p id="private-key-output" class="hex-output"></p>
+        </div>
+
+        <div class="pipeline-step">
+            <h3>Private Key → Public Key (secp256k1)</h3>
+            <p class="step-label">Public Key (512-bit, uncompressed):</p>
+            <p id="public-key-output" class="hex-output"></p>
+        </div>
+
+        <div class="pipeline-step">
+            <h3>Public Key → Address (Keccak-256)</h3>
+            <p class="step-label">Ethereum Address:</p>
+            <p id="address-output" class="hex-output"></p>
+        </div>
+
+        <div class="pipeline-step">
+            <h3>Address → Checksummed Address (EIP-55)</h3>
+            <p class="step-label">Checksummed Address:</p>
+            <p id="checksum-output" class="hex-output"></p>
+        </div>
+    </section>
+
+    <section id="stats">
+        <h2>Statistical Exploration</h2>
+        <div class="controls">
+            <label for="sample-size">Number of addresses to generate:</label>
+            <input type="number" id="sample-size" value="100" min="10" max="1000">
+            <button id="stats-btn">Run Analysis</button>
+        </div>
+        <div id="stats-output"></div>
+    </section>
+
+    <section id="discussion">
+        <h2>Discussion</h2>
+        <p>
+            The Ethereum wallet pipeline uses several different cryptographic techniques
+            because each step has fundamentally different requirements:
+        </p>
+        <ul>
+            <li>
+                <strong>BIP-39/BIP-32/BIP-44</strong> need determinism and human-readability,
+                the same mnemonic must always produce the same keys, and the phrase must be
+                memorizable by humans.
+            </li>
+            <li>
+                <strong>secp256k1</strong> needs a mathematical trapdoor, the relationship
+                between private and public key must be easy to compute forward and hard to reverse.
+            </li>
+            <li>
+                <strong>Keccak-256</strong> needs fixed-size output and collision resistance,
+                Ethereum addresses are always 20 bytes regardless of public key content.
+            </li>
+            <li>
+                <strong>EIP-55</strong> needs error detection without changing the address,
+                a checksum that works at the encoding level, not the cryptographic level.
+            </li>
+        </ul>
+        <p>
+            No single algorithm can satisfy all these requirements simultaneously, this is
+            why the pipeline is a composition of specialized primitives rather than one
+            monolithic function.
+        </p>
+    </section>
+
+    <section id="conclusion">
+        <h2>Conclusion</h2>
+        <p>
+            The Ethereum wallet pipeline is a carefully layered composition of cryptographic
+            primitives, each chosen for its specific properties. The determinism of BIP-39
+            enables wallet recovery from a single phrase; the hierarchy of BIP-32/BIP-44
+            enables multiple accounts from a single seed; secp256k1 provides the public-key
+            relationship; Keccak-256 compresses the public key into a manageable address;
+            and EIP-55 adds a lightweight error-detection layer. Together they form a system
+            that is both secure and usable.
+        </p>
+    </section>
+</body>
+</html>
