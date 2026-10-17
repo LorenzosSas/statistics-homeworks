@@ -4,7 +4,7 @@ Weekly homework assignments for the Statistics course - M.Sc. in Cybersecurity, 
 
 ## Live Site
 
-[lorenzossas.github.io/statistics-homeworks](https://lorenzossas.github.io/statistics-homeworks)
+[Live website](https://lorenzossas.github.io/statistics-homeworks)
 
 ## Homeworks
 
@@ -25,4 +25,4 @@ The project is built using standard web technologies. External dependencies are 
 * [@noble/curves 1.6.0](https://github.com/paulmillr/noble-curves) - secp256k1 elliptic curve (loaded via CDN)
 
 ## References
-- Corbellini, A. (2015). [Elliptic Curve Cryptography: a gentle introduction](https://andrea.corbellini.name/2015/05/17/elliptic-curve-cryptography-a-gentle-introduction/) 
+- Corbellini, A. (2015). [Elliptic Curve Cryptography: a gentle introduction](https://andrea.corbellini.name/2015/05/17/elliptic-curve-cryptography-a-gentle-introduction/) - Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
