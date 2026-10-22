@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HW03 - ECC Encryption & Caesar Cipher</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+</head>
+<body>
+    <a href="../index.html" id="back-link">← Back to Homeworks</a>
+
+    <h1>ECC Encryption & Caesar Cipher</h1>
+
+    <section id="summary">
+        <h2>Executive Summary</h2>
+        <p>
+            This homework compares two cryptographic scheme ElGamal encryption on the 
+            toy elliptic curve from HW01, and the classical Caesar cipher, analyzing their 
+            encryption and decryption procedures, key spaces, and statistical properties. 
+            It also implements attacks against both schemes, exploiting their respective weaknesses.
+        </p>
+    </section>
+
+    <section id="ecc-desc">
+        <h2>ECC Encryption (ElGamal on Elliptic Curve)</h2>
+        <p>
+            ElGamal encryption on an elliptic curve works as follows:
+        </p>
+        <ul>
+            <li>
+                <strong>Setup:</strong> curve \(y^2 \equiv x^3 + 7 \pmod{17}\), 
+                base point \(G\), private key \(k\), public key \(Q = kG\).
+            </li>
+            <li>
+                <strong>Message embedding:</strong> each character is mapped to a 
+                point on the curve via a lookup table.
+            </li>
+            <li>
+                <strong>Encryption:</strong> for each character \(M\), choose random \(r\) 
+                and compute \(C_1 = rG\), \(C_2 = M + rQ\). Ciphertext is \((C_1, C_2)\).
+            </li>
+            <li>
+                <strong>Decryption:</strong> compute \(rQ = k \cdot C_1\), 
+                then \(M = C_2 - rQ\).
+            </li>
+        </ul>
+        <p>
+            Security relies on the ECDLP, knowing \(Q = kG\) and \(C_1 = rG\) 
+            does not reveal \(k\) or \(r\) without solving the discrete logarithm.
+        </p>
+    </section>
+
+    <section id="caesar-desc">
+        <h2>Caesar Cipher</h2>
+        <p>
+            The Caesar cipher shifts each letter by a fixed amount \(s\):
+            \(E(c) = (c + s) \bmod 26\), \(D(c) = (c - s) \bmod 26\).
+            Non-letter characters are left unchanged.
+        </p>
+        <p>
+            The key space is only 26, exhaustive search is trivial. 
+            Moreover, Caesar preserves letter frequencies, making it vulnerable 
+            to frequency analysis.
+        </p>
+    </section>
+
+    <section id="simulator">
+        <h2>Simulator</h2>
+
+        <div class="controls">
+            <label for="message-input">Message:</label>
+            <input type="text" id="message-input" placeholder="e.g. HELLO">
+        </div>
+
+        <div class="controls">
+            <label for="g-select">Base point G:</label>
+            <select id="g-select"></select>
+            <label for="private-key-input">Private key k:</label>
+            <input type="number" id="private-key-input" value="6" min="1">
+            <label for="r-input">Random r:</label>
+            <input type="number" id="r-input" value="2" min="1">
+        </div>
+
+        <div class="controls">
+            <label for="caesar-shift-input">Caesar shift:</label>
+            <input type="number" id="caesar-shift-input" value="3">
+        </div>
+
+        <button id="encrypt-btn">Encrypt & Decrypt</button>
+        <p id="error-output" class="error"></p>
+    </section>
+
+    <section id="ecc-output">
+        <h2>ECC Pipeline</h2>
+
+        <div class="pipeline-step">
+            <h3>Public Key</h3>
+            <p id="ecc-public-key" class="hex-output"></p>
+        </div>
+
+        <div class="pipeline-step">
+            <h3>Ciphertext \((C_1, C_2)\) per character</h3>
+            <div id="ecc-ciphertext" class="hex-output"></div>
+        </div>
+
+        <div class="pipeline-step">
+            <h3>Decrypted Message</h3>
+            <p id="ecc-decrypted" class="hex-output"></p>
+        </div>
+    </section>
+
+    <section id="caesar-output">
+        <h2>Caesar Cipher</h2>
+
+        <div class="pipeline-step">
+            <h3>Ciphertext</h3>
+            <p id="caesar-ciphertext" class="hex-output"></p>
+        </div>
+
+        <div class="pipeline-step">
+            <h3>Decrypted Message</h3>
+            <p id="caesar-decrypted" class="hex-output"></p>
+        </div>
+    </section>
+
+    <section id="freq-analysis">
+        <h2>Statistical Cryptanalysis of Caesar</h2>
+        <p>
+            Given a sufficiently large ciphertext, the Caesar key can be recovered 
+            by comparing letter frequencies against the expected English distribution 
+            using a chi-square test.
+        </p>
+        <div class="controls">
+            <label for="corpus-input">Corpus (optional, leave empty to repeat message):</label>
+            <textarea id="corpus-input" rows="4" 
+                placeholder="Paste a large English text here for better frequency analysis..."></textarea>
+        </div>
+        <div id="freq-analysis-output"></div>
+
+        <h3>Effectiveness by Ciphertext Length</h3>
+        <div id="length-analysis-output"></div>
+
+        <h3>Exhaustive Key Search</h3>
+        <button id="exhaustive-btn">Try All 26 Keys</button>
+        <div id="exhaustive-output"></div>
+    </section>
+
+    <section id="attacks">
+        <h2>Attacks on the Toy ECC Scheme</h2>
+        <p>
+            The toy scheme uses a restricted key space (order ≤ 18), making 
+            brute force and baby-step giant-step attacks feasible.
+        </p>
+
+        <div class="pipeline-step">
+            <h3>Brute Force \(O(n)\)</h3>
+            <div id="brute-force-output"></div>
+        </div>
+
+        <div class="pipeline-step">
+            <h3>Baby-step Giant-step \(O(\sqrt{n})\)</h3>
+            <div id="bsgs-output"></div>
+        </div>
+    </section>
+
+    <section id="stats">
+        <h2>Statistical Comparison</h2>
+        <p>
+            Caesar cipher preserves letter frequency distribution, the index of 
+            coincidence remains high (~0.065 for English). ECC operates on curve 
+            points rather than letters, so standard letter statistics do not apply.
+        </p>
+        <div id="stats-output"></div>
+    </section>
+
+    <section id="discussion">
+        <h2>Discussion</h2>
+        <ul>
+            <li>
+                <strong>Key space:</strong> Caesar has 26 possible keys, trivially 
+                exhaustible. The toy ECC scheme has at most 18 keys (group order), 
+                also small, but for fundamentally different reasons. Real secp256k1 
+                has \(2^{256}\) possible keys, computationally infeasible to brute force.
+            </li>
+            <li>
+                <strong>Statistical vulnerability:</strong> Caesar preserves letter 
+                frequencies, frequency analysis recovers the key from ~50 characters. 
+                ECC produces ciphertexts that are curve points, no letter frequency 
+                structure to exploit.
+            </li>
+            <li>
+                <strong>Attack comparison:</strong> the Caesar attack exploits 
+                statistical structure in the plaintext language. The ECC attack 
+                exploits the restricted key space, it is a mathematical attack, 
+                not a statistical one. On real secp256k1 the mathematical attack 
+                is infeasible because the key space is astronomically large.
+            </li>
+            <li>
+                <strong>Why the toy scheme is weak:</strong> the restriction to 
+                a small prime field (mod 17) limits the group order to at most 18, 
+                making both brute force and baby-step giant-step trivial. The weakness 
+                comes entirely from the small key space, not from the mathematical 
+                structure of ECC itself.
+            </li>
+        </ul>
+    </section>
+
+    <section id="conclusion">
+        <h2>Conclusion</h2>
+        <p>
+            The Caesar cipher and ECC encryption represent opposite ends of the 
+            cryptographic spectrum. Caesar is simple, deterministic, and completely 
+            broken by frequency analysis. ECC is mathematically sophisticated, 
+            semantically secure (with proper randomness in \(r\)), and resistant to 
+            statistical attacks. The toy scheme shares the mathematical correctness 
+            of real ECC but inherits the weakness of a small key space, demonstrating 
+            that security in ECC comes not from the algorithm itself but from the 
+            size of the underlying field.
+        </p>
+    </section>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html> 
