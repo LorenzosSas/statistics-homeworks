@@ -1,10 +1,10 @@
-const CURVE_PRIME = 17;
-const CURVE_PARAM_A = 0;
-const CURVE_PARAM_B = 7;
-const mod = (n, m) => ((n % m ) + m) % m;
-const MAX_SEQUENTIAL_THRESHOLD = 1000;
+export const CURVE_PRIME = 17;
+export const CURVE_PARAM_A = 0;
+export const CURVE_PARAM_B = 7;
+export const mod = (n, m) => ((n % m ) + m) % m;
+export const MAX_SEQUENTIAL_THRESHOLD = 1000;
 
-function modInverse(num, modulo) {
+export function modInverse(num, modulo) {
     num = mod(num, modulo);
 
     let [prevRemainder, currRemainder] = [num, modulo];
@@ -27,7 +27,7 @@ function modInverse(num, modulo) {
 }
 
 
-function curvePointAddition(point1, point2) {
+export function curvePointAddition(point1, point2) {
     if (point1 === null) return point2;
     if (point2 === null) return point1;
 
@@ -53,7 +53,7 @@ function curvePointAddition(point1, point2) {
     return {x: x3, y: mod(-y3, CURVE_PRIME)};
 }
 
-function multiplyPointScalar(scalar, point) {
+export function multiplyPointScalar(scalar, point) {
     if (scalar === 0 || point === null) return {result: null, steps: []};
     let currResult = null;
     const execSteps = [];
@@ -73,7 +73,7 @@ function multiplyPointScalar(scalar, point) {
     };
 }
 
-function multiplyPointScalarFast(scalar, point) {
+export function multiplyPointScalarFast(scalar, point) {
     if (scalar === 0 || point === null) return null;
 
     let result = null;
@@ -89,7 +89,7 @@ function multiplyPointScalarFast(scalar, point) {
     return result;
 }
 
-function computeScalarMultiplication(scalar, point) {
+export function computeScalarMultiplication(scalar, point) {
     if (scalar === 0 || point === null) return {result: null, steps: [], fastMethodUsed: false};
     if (scalar <= MAX_SEQUENTIAL_THRESHOLD) {
         return {...multiplyPointScalar(scalar, point), fastMethodUsed: false};
@@ -108,7 +108,7 @@ function computeScalarMultiplication(scalar, point) {
     }
 }
 
-function computeValidCurvePoints() {
+export function computeValidCurvePoints() {
     const points = [];
     for (let x = 0; x < CURVE_PRIME; x++) {
         for (let y = 0; y < CURVE_PRIME; y++) {
@@ -120,7 +120,7 @@ function computeValidCurvePoints() {
     return points;
 }
 
-function computeGroupPoints(basePoint) {
+export function computeGroupPoints(basePoint) {
     const points = [];
     let current = basePoint;
 

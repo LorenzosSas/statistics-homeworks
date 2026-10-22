@@ -1,4 +1,6 @@
-function coordFrequency(points) {
+import { multiplyPointScalar } from "./logic.js";
+
+export function coordFrequency(points) {
     const freqX = {};
     const freqY = {};
 
@@ -10,7 +12,7 @@ function coordFrequency(points) {
     return {freqX, freqY};
 }
 
-function bitDistribution(points) {
+export function bitDistribution(points) {
     let [zeros, ones] = [0, 0];
 
     points.forEach(({x, y}) => {
@@ -24,11 +26,11 @@ function bitDistribution(points) {
     return {zeros, ones, ratio: ones / (zeros + ones)};
 }
 
-function hammingDistance(val1, val2) {
+export function hammingDistance(val1, val2) {
     return (val1 ^ val2).toString(2).split("1").length - 1;
 }
 
-function avalancheTest(basePoint, maxK) {
+export function avalancheTest(basePoint, maxK) {
     const results = [];
 
     for (let i = 1; i <= maxK; i++) {

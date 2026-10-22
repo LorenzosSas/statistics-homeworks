@@ -1,3 +1,6 @@
+import { MAX_SEQUENTIAL_THRESHOLD, computeGroupPoints, computeValidCurvePoints, computeScalarMultiplication } from "./logic.js";
+import { coordFrequency, bitDistribution, avalancheTest } from "./stats.js";
+
 const DEFAULT_BASE_POINT = {x: 1, y: 5};
 const DEFAULT_PRIVATE_KEY = 6;
 

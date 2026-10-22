@@ -1,3 +1,5 @@
+import { CURVE_PRIME, computeValidCurvePoints, computeScalarMultiplication, curvePointAddition, multiplyPointScalarFast } from "./logic.js";
+
 const canvas = document.getElementById("ec-canvas");
 const ctx = canvas.getContext("2d");
 

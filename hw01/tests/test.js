@@ -1,5 +1,8 @@
 const BASE_POINT = {x: 1, y: 5};
 
+import { CURVE_PRIME, CURVE_PARAM_B, MAX_SEQUENTIAL_THRESHOLD, mod, modInverse, curvePointAddition, multiplyPointScalar, multiplyPointScalarFast, computeScalarMultiplication, computeGroupPoints, computeValidCurvePoints} from "../logic.js";
+import { coordFrequency, bitDistribution, hammingDistance, avalancheTest } from "../stats.js";
+
 function testsMod() {
     console.log("Tests for the mod() function");
     console.assert(mod(5, 3) === 2, "Error: mod(5, 3) should be 2");
