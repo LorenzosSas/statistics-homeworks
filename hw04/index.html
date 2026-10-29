@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HW04 - Stochastic Penetration Model</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+</head>
+<body>
+    <a href="../index.html" id="back-link">← Back to Homeworks</a>
+
+    <h1>Stochastic Penetration Model</h1>
+
+    <section id="summary">
+        <h2>Executive Summary</h2>
+        <p>
+            This project simulates a stochastic penetration process modeled by 
+            independent and identically distributed increments \(X_1, X_2, \ldots, X_n\), 
+            studying the behavior of the total score \(S_n\), average score \(S_n/n\), 
+            and normalized score \(S_n/\sqrt{n}\) under two models: Bernoulli and Rademacher.
+        </p>
+        <p>
+            The simulation investigates the Law of Large Numbers (convergence of \(S_n/n\)) 
+            and the Central Limit Theorem (convergence of \(S_n/\sqrt{n}\) to a normal distribution).
+        </p>
+    </section>
+
+    <section id="model">
+        <h2>Model Description</h2>
+        <p>
+            Consider \(n\) systems and \(m\) attackers. Each attacker performs \(n\) 
+            independent penetration attempts, with score \(X_i\) at step \(i\):
+        </p>
+        <ul>
+            <li>
+                <strong>Bernoulli model:</strong> \(X_i \in \{0, 1\}\) with 
+                \(P(X_i = 1) = p\). Models a binary success/failure penetration attempt.
+                \(E[X_i] = p\), \(\text{Var}[X_i] = p(1-p)\).
+            </li>
+            <li>
+                <strong>Rademacher model:</strong> \(X_i \in \{-1, +1\}\) with 
+                \(P(X_i = +1) = P(X_i = -1) = \frac{1}{2}\). Models a symmetric, 
+                zero-mean process. \(E[X_i] = 0\), \(\text{Var}[X_i] = 1\).
+            </li>
+        </ul>
+        <p>
+            Three quantities are studied for increasing \(n\):
+        </p>
+        <ul>
+            <li>\(S_n = \sum_{i=1}^n X_i\), total score (grows with \(n\))</li>
+            <li>\(S_n/n\), average score (converges to \(E[X_i]\) by LLN)</li>
+            <li>\(S_n/\sqrt{n}\), normalized score (converges to \(N(0, \sigma^2)\) by CLT)</li>
+        </ul>
+    </section>
+
+    <section id="theory">
+        <h2>Theoretical Background</h2>
+        <ul>
+            <li>
+                <strong>Law of Large Numbers:</strong> \(S_n/n \xrightarrow{P} E[X_i]\) 
+                as \(n \to \infty\). The average score converges in probability to the 
+                theoretical mean. Variance of \(S_n/n\) is \(\text{Var}[X_i]/n \to 0\).
+            </li>
+            <li>
+                <strong>Central Limit Theorem:</strong> 
+                \(\frac{S_n - nE[X_i]}{\sqrt{n\,\text{Var}[X_i]}} \xrightarrow{d} N(0,1)\) 
+                as \(n \to \infty\). In the Rademacher case \(E[X_i] = 0\) and 
+                \(\text{Var}[X_i] = 1\), so \(S_n/\sqrt{n} \xrightarrow{d} N(0,1)\).
+            </li>
+            <li>
+                <strong>Variance behavior:</strong>
+                \(\text{Var}[S_n] = n\,\text{Var}[X_i]\) grows linearly;
+                \(\text{Var}[S_n/n] = \text{Var}[X_i]/n\) shrinks to 0;
+                \(\text{Var}[S_n/\sqrt{n}] = \text{Var}[X_i]\) stays constant.
+            </li>
+        </ul>
+    </section>
+
+    <section id="simulator">
+        <h2>Simulator</h2>
+        <div class="controls">
+            <label for="n-input">n (steps):</label>
+            <input type="number" id="n-input" value="100" min="1" max="10000">
+            <label for="m-input">m (trajectories):</label>
+            <input type="number" id="m-input" value="50" min="1" max="1000">
+            <label for="p-input">p (Bernoulli):</label>
+            <input type="number" id="p-input" value="0.5" min="0" max="1" step="0.01">
+            <button id="simulate-btn">Simulate</button>
+        </div>
+        <p id="error-output" class="error"></p>
+    </section>
+
+    <section id="results">
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="tab-bernoulli">Bernoulli</button>
+            <button class="tab-btn" data-tab="tab-rademacher">Rademacher</button>
+        </div>
+
+        <div id="tab-bernoulli" class="tab-content active">
+            <h2>Bernoulli Model</h2>
+
+            <div class="chart-grid">
+                <div class="chart-container">
+                    <h3>Trajectories - \(S_n\)</h3>
+                    <canvas id="canvas-b-sn"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Distribution - \(S_n\)</h3>
+                    <canvas id="canvas-b-hist-sn"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Trajectories - \(S_n/n\)</h3>
+                    <canvas id="canvas-b-sn-n"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Distribution - \(S_n/n\)</h3>
+                    <canvas id="canvas-b-hist-sn-n"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Trajectories - \(S_n/\sqrt{n}\)</h3>
+                    <canvas id="canvas-b-sn-sqrt-n"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Distribution - \(S_n/\sqrt{n}\)</h3>
+                    <canvas id="canvas-b-hist-sn-sqrt-n"></canvas>
+                </div>
+            </div>
+
+            <div id="stats-bernoulli"></div>
+        </div>
+
+        <div id="tab-rademacher" class="tab-content">
+            <h2>Rademacher Model</h2>
+
+            <div class="chart-grid">
+                <div class="chart-container">
+                    <h3>Trajectories - \(S_n\)</h3>
+                    <canvas id="canvas-r-sn"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Distribution - \(S_n\)</h3>
+                    <canvas id="canvas-r-hist-sn"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Trajectories - \(S_n/n\)</h3>
+                    <canvas id="canvas-r-sn-n"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Distribution - \(S_n/n\)</h3>
+                    <canvas id="canvas-r-hist-sn-n"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Trajectories - \(S_n/\sqrt{n}\)</h3>
+                    <canvas id="canvas-r-sn-sqrt-n"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Distribution - \(S_n/\sqrt{n}\)</h3>
+                    <canvas id="canvas-r-hist-sn-sqrt-n"></canvas>
+                </div>
+            </div>
+
+            <div id="stats-rademacher"></div>
+        </div>
+    </section>
+
+    <section id="discussion">
+        <h2>Discussion</h2>
+        <ul>
+            <li>
+                <strong>Total score \(S_n\):</strong> variance grows linearly with \(n\), 
+                trajectories spread out over time. In the Bernoulli case, \(S_n\) 
+                drifts upward (mean = \(np\)); in the Rademacher case it oscillates 
+                around 0.
+            </li>
+            <li>
+                <strong>Average score \(S_n/n\):</strong> converges to \(E[X_i]\) as 
+                \(n\) increases (Law of Large Numbers). Variance shrinks to 0, 
+                trajectories concentrate around the theoretical mean.
+            </li>
+            <li>
+                <strong>Normalized score \(S_n/\sqrt{n}\):</strong> variance stabilizes 
+                at \(\text{Var}[X_i]\). In the Rademacher case, the distribution 
+                converges to \(N(0,1)\) (Central Limit Theorem).
+            </li>
+            <li>
+                <strong>System size and number of attackers:</strong> increasing \(n\) 
+                makes the LLN and CLT convergence more visible. Increasing \(m\) gives 
+                a better empirical distribution of the final scores.
+            </li>
+        </ul>
+    </section>
+
+    <section id="conclusion">
+        <h2>Conclusion</h2>
+        <p>
+            The simulation confirms the theoretical predictions: \(S_n/n\) converges 
+            to the theoretical mean as \(n\) grows (LLN), while \(S_n/\sqrt{n}\) 
+            converges in distribution to a normal with variance equal to \(\text{Var}[X_i]\) 
+            (CLT). The Rademacher case provides the cleanest demonstration of the CLT 
+            due to its zero mean and unit variance. The Bernoulli case shows how a 
+            non-symmetric distribution still converges to normality under the CLT.
+        </p>
+    </section>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>
