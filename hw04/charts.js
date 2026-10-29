@@ -1,4 +1,4 @@
-import { normalPDF } from "./stats";
+import { normalPDF } from "./stats.js";
 
 const COLORS = {
     bernoulli: [
