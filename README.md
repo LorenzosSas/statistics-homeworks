@@ -15,7 +15,7 @@ Weekly homework assignments for the Statistics course - M.Sc. in Cybersecurity, 
 
 ## Tech Stack
 
-The project is built using standard web technologies. External dependencies are limited to audited cryptographic primitives:
+The project is built using standard web technologies.
 
 * HTML5
 * CSS3
