@@ -25,6 +25,7 @@ The project is built using standard web technologies. External dependencies are 
 * [@scure/bip32 2.3.0](https://github.com/paulmillr/scure-bip32) - BIP-32 HD key derivation (loaded via CDN) 
 * [@noble/hashes 1.5.0](https://github.com/paulmillr/noble-hashes) - Keccak-256 hashing (loaded via CDN)
 * [@noble/curves 1.6.0](https://github.com/paulmillr/noble-curves) - secp256k1 elliptic curve (loaded via CDN)
+* [Chart.js 4.4.1](https://www.chart.js.org/) - data visualization, (loaded via CDN)
 
 ## References
 - Corbellini, A. (2015). [Elliptic Curve Cryptography: a gentle introduction](https://andrea.corbellini.name/2015/05/17/elliptic-curve-cryptography-a-gentle-introduction/) - Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
