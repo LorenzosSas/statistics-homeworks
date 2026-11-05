@@ -12,6 +12,7 @@ Weekly homework assignments for the Statistics course - M.Sc. in Cybersecurity, 
 - [HW02 - From Wallet Seed to Ethereum Address](https://lorenzossas.github.io/statistics-homeworks/hw02)
 - [HW03 - ECC Encryption & Caesar Cyper](https://lorenzossas.github.io/statistics-homeworks/hw03)
 - [HW04 - Stochastic Penetration Model](https://lorenzossas.github.io/statistics-homeworks/hw04)
+- [HW05 - Welford's Algorithm & Sampling Statistics](https://lorenzossas.github.io/statistics-homeworks/hw05)
 
 ## Tech Stack
 
