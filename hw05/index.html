@@ -55,9 +55,9 @@
 
         <h3>Implementation</h3>
         <p>The core logic requires only 3 lines:</p>
-        <pre><code>delta  = x - mean_prev          // deviation from old mean
-mean   = mean_prev + delta / n   // Knuth's update
-SS     = SS_prev + delta * (x - mean)  // Welford's update (uses new mean)</code></pre>
+        <pre><code>delta  = x - mean_prev // deviation from old mean
+mean = mean_prev + delta / n  // Knuth's update
+SS = SS_prev + delta * (x - mean) // Welford's update (uses new mean)</code></pre>
     </section>
 
     <section id="ex2">
