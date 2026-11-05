@@ -1,4 +1,5 @@
 import { welfordInit, welfordUpdate, welfordVariance, welfordArray } from "../welford.js";
+import { DISTRIBUTIONS, simulateHacker, simulateHackers, experimentByN } from "../simulation.js";
 
 function testsWelfordInit() {
     console.log("Tests for welfordInit()");
@@ -92,11 +93,108 @@ function testsWelfordArray() {
     console.log("\nwelfordArray() tests passed.\n");
 }
 
+function testsDistributions() {
+    console.log("Tests for DISTRIBUTIONS");
+
+    for (const [key, dist] of Object.entries(DISTRIBUTIONS)) {
+        console.assert(typeof dist.name === 'string', `Error: ${key} should have a name`);
+        console.assert(typeof dist.mean === 'number', `Error: ${key} should have a mean`);
+        console.assert(typeof dist.variance === 'number', `Error: ${key} should have a variance`);
+        console.assert(typeof dist.sample === 'function', `Error: ${key} should have a sample function`);
+
+        for (let i = 0; i < 100; i++) {
+            const s = dist.sample();
+            console.assert(s >= 0 && s <= 10, `Error: ${key} sample should be between 0 and 10, got ${s}`);
+            console.assert(Number.isInteger(s), `Error: ${key} sample should be integer, got ${s}`);
+        }
+
+        const samples = Array.from({length: 10000}, () => dist.sample());
+        const empiricalMean = samples.reduce((a, b) => a + b, 0) / samples.length;
+        console.assert(Math.abs(empiricalMean - dist.mean) < 0.5, `Error: ${key} empirical mean ${empiricalMean} should be close to theoretical ${dist.mean}`);
+
+        const empiricalVariance = welfordArray(samples).variance;
+        console.assert(Math.abs(empiricalVariance - dist.variance) < 1, `Error: ${key} empirical variance ${empiricalVariance} should be close to theoretical ${dist.variance}`)
+    }
+
+    console.log("\nDISTRIBUTIONS tests passed.\n");
+}
+
+function testsSimulateHacker() {
+    console.log("Tests for simulateHacker()");
+
+    const dist = DISTRIBUTIONS.uniform;
+    const result = simulateHacker(100, dist);
+
+    console.assert(result.scores.length === 100, `Error: should have 100 scores`);
+    console.assert(result.n === 100, `Error: n should be 100`);
+    console.assert(typeof result.samplingMean === 'number', "Error: samplingMean should be a number");
+    console.assert(typeof result.samplingVariance === 'number', "Error: samplingVariance should be a number");
+
+    result.scores.forEach(s => {
+        console.assert(s >= 0 && s <= 10, `Error: score ${s} should be between 0 and 10`);
+    });
+
+    const welford = welfordArray(result.scores);
+    console.assert(Math.abs(result.samplingMean - welford.mean) < 1e-10, "Error: samplingMean should match welfordArray mean");
+    console.assert(Math.abs(result.samplingVariance - welford.variance) < 1e-10, "Error: samplingVariance should match welfordArray variance");
+
+    const largeSim = simulateHacker(10000, dist);
+    console.assert(Math.abs(largeSim.samplingMean - dist.mean) < 0.5, `Error: large n mean should be close to theoretical ${dist.mean}`);
+
+    console.log("\nsimulateHacker() tests passed.\n");
+}
+
+function testsSimulateHackers() {
+    console.log("Tests for simulateHackers()");
+
+    const dist = DISTRIBUTIONS.uniform;
+    const result = simulateHackers(100, 50, dist);
+
+    console.assert(result.hackers.length === 50, "Error: should have 50 hackers");
+    console.assert(typeof result.meanOfMeans === 'number', "Error: meanOfMeans should be a number");
+    console.assert(typeof result.meanOfVariances === 'number', "Error: meanOfVariances should be a number");
+    console.assert(result.theoreticalMean === dist.mean, "Error: theoreticalMean should match distribution");
+    console.assert(result.theoreticalVariance === dist.variance, "Error: theoreticalVariance should match distribution");
+
+    const largeSim = simulateHackers(1000, 100, dist);
+    console.assert(Math.abs(largeSim.meanOfMeans - dist.mean) < 0.5, `Error: meanOfMeans should be close to ${dist.mean}, got ${largeSim.meanOfMeans}`);
+
+    console.assert(Math.abs(largeSim.meanOfVariances - dist.variance) < 1, `Error: meanOfVariances should be close to ${dist.variance}, got ${largeSim.meanOfVariances}`);
+
+    console.log("\nsimulateHackers() tests passed.\n");
+}
+
+function testsExperimentByN() {
+    console.log("Tests for experimentByN()");
+
+    const dist = DISTRIBUTIONS.uniform;
+    const nValues = [10, 50, 100];
+    const results = experimentByN(nValues, 50, dist);
+
+    console.assert(results.length === nValues.length, `Error: should have ${nValues.length} results`);
+
+    results.forEach((r, i) => {
+        console.assert(r.n === nValues[i], `Error: n should be ${nValues[i]}, got ${r.n}`);
+        console.assert(typeof r.meanOfMeans === 'number', "Error: meanOfMeans should be a number");
+        console.assert(typeof r.varOfMeans === 'number', "Error: varOfMeans should be a number");
+        console.assert(r.theoreticalVarOfMeans === dist.variance / r.n, `Error: theoreticalVarOfMeans should be ${dist.variance / r.n}`);
+    });
+
+    const varOfMeans = results.map(r => r.varOfMeans);
+    console.assert(varOfMeans[0] > varOfMeans[varOfMeans.length - 1], "Error: variance of means should decrease as n increases");
+
+    console.log("\nexperimentByN() tests passed.\n");
+}
+
 function runTests() {
     testsWelfordInit();
     testsWelfordUpdate();
     testsWelfordVariance();
     testsWelfordArray();
+    testsDistributions();
+    testsSimulateHacker();
+    testsSimulateHackers();
+    testsExperimentByN();
     console.log("All tests passed.");
 }
 
