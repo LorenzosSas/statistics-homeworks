@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HW05 - Welford's Algorithm & Sampling Statistics</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+</head>
+<body>
+    <a href="../index.html" id="back-link">← Back to Homeworks</a>
+
+    <h1>Welford's Algorithm & Sampling Statistics</h1>
+
+    <section id="ex1">
+        <h2>Exercise 1 - Welford's Recurrence Formulas</h2>
+
+        <p>
+            Following the same approach as Knuth's recurrence for the mean, 
+            we derive Welford's online algorithm for the sum of squares and variance.
+        </p>
+
+        <h3>Knuth's Recurrence for the Mean</h3>
+        <p>
+            Given a new observation \(x_n\), the mean can be updated incrementally:
+            \[M_n = M_{n-1} + \frac{x_n - M_{n-1}}{n}\]
+        </p>
+
+        <h3>Derivation of Welford's SS Recurrence</h3>
+        <p>
+            Define \(SS_n = \sum_{i=1}^n (x_i - M_n)^2\). We want to express 
+            \(SS_n\) in terms of \(SS_{n-1}\) and the new observation \(x_n\).
+        </p>
+        <p>
+            Starting from the definition and expanding:
+            \[SS_n = SS_{n-1} + (x_n - M_{n-1})(x_n - M_n)\]
+        </p>
+        <p>
+            This elegant result uses both the old mean \(M_{n-1}\) and the 
+            new mean \(M_n\), making it numerically stable, unlike the naive 
+            formula \(\sum x_i^2 - n\bar{x}^2\) which suffers from catastrophic 
+            cancellation for large values.
+        </p>
+
+        <h3>Variance</h3>
+        <p>
+            The sample variance (with Bessel's correction) is:
+            \[s^2_n = \frac{SS_n}{n-1}\]
+        </p>
+        <p>
+            Bessel's correction (\(n-1\) instead of \(n\)) makes \(s^2_n\) an 
+            unbiased estimator of the population variance \(\sigma^2\).
+        </p>
+
+        <h3>Implementation</h3>
+        <p>The core logic requires only 3 lines:</p>
+        <pre><code>delta  = x - mean_prev          // deviation from old mean
+mean   = mean_prev + delta / n   // Knuth's update
+SS     = SS_prev + delta * (x - mean)  // Welford's update (uses new mean)</code></pre>
+    </section>
+
+    <section id="ex2">
+        <h2>Exercise 2 - Sampling Mean and Variance</h2>
+        <p>
+            Each of \(m\) hackers attempts to penetrate \(n\) systems, receiving 
+            a score between 0 and 10 for each attempt. For each hacker, Welford's 
+            algorithm computes the sampling mean and variance of their \(n\) scores.
+            Across \(m\) hackers, we study how these sampling statistics compare 
+            to the theoretical values \(\mu\) and \(\sigma^2\).
+        </p>
+    </section>
+
+    <section id="simulator">
+        <h2>Simulator</h2>
+        <div class="controls">
+            <label for="distribution-select">Score distribution:</label>
+            <select id="distribution-select"></select>
+            <label for="n-input">n (systems per hacker):</label>
+            <input type="number" id="n-input" value="100" min="2" max="10000">
+            <label for="m-input">m (hackers):</label>
+            <input type="number" id="m-input" value="100" min="1" max="1000">
+            <button id="simulate-btn">Simulate</button>
+        </div>
+        <p id="error-output" class="error"></p>
+
+        <div class="info-block">
+            <p>Theoretical mean μ: <strong id="theoretical-mean">-</strong></p>
+            <p>Theoretical variance σ²: <strong id="theoretical-variance">-</strong></p>
+        </div>
+    </section>
+
+    <section id="score-dist-section">
+        <h2>Score Distribution</h2>
+        <p>Empirical distribution of the chosen score model (sampled 10,000 times):</p>
+        <div class="chart-container">
+            <canvas id="canvas-score-dist"></canvas>
+        </div>
+    </section>
+
+    <section id="results">
+        <h2>Results</h2>
+        <div id="stats-output"></div>
+    </section>
+
+    <section id="means-dist-section">
+        <h2>Distribution of Sampling Means</h2>
+        <p>
+            By the Central Limit Theorem, the sampling means \(\bar{X}\) are 
+            approximately normally distributed with mean \(\mu\) and variance 
+            \(\sigma^2/n\), regardless of the original distribution.
+        </p>
+        <div class="chart-container">
+            <canvas id="canvas-means-dist"></canvas>
+        </div>
+    </section>
+
+    <section id="var-by-n-section">
+        <h2>Variance of Sampling Means vs n</h2>
+        <p>
+            As \(n\) increases, \(\text{Var}(\bar{X}) = \sigma^2/n \to 0\), 
+            the sampling means concentrate around \(\mu\) (Law of Large Numbers).
+        </p>
+        <div class="chart-grid">
+            <div class="chart-container">
+                <canvas id="canvas-var-by-n"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="canvas-var-of-var-by-n"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <section id="discussion">
+        <h2>Discussion</h2>
+        <ul>
+            <li>
+                <strong>Average of sampling means ≈ μ:</strong> the mean of the 
+                sampling means converges to the theoretical mean regardless of \(n\), 
+                the sampling mean is an unbiased estimator of \(\mu\).
+            </li>
+            <li>
+                <strong>Average of sampling variances ≈ σ²:</strong> thanks to 
+                Bessel's correction (\(n-1\) denominator), the sampling variance 
+                is an unbiased estimator of \(\sigma^2\). Without it, the estimator 
+                would systematically underestimate \(\sigma^2\).
+            </li>
+            <li>
+                <strong>Increasing n reduces variability:</strong> as \(n\) grows, 
+                \(\text{Var}(\bar{X}) = \sigma^2/n \to 0\), each hacker's sampling 
+                mean becomes more reliable. This is the practical implication of the 
+                Law of Large Numbers.
+            </li>
+            <li>
+                <strong>Usefulness in inferential statistics:</strong> these results 
+                justify using sample statistics to estimate population parameters. 
+                With sufficient \(n\), a single hacker's sampling mean is a reliable 
+                estimate of \(\mu\), and the distribution of sampling means allows 
+                confidence interval construction.
+            </li>
+        </ul>
+    </section>
+
+    <section id="conclusion">
+        <h2>Conclusion</h2>
+        <p>
+            Welford's algorithm provides a numerically stable, single-pass method 
+            for computing mean and variance, essential for streaming data where 
+            storing all values is impractical. The simulation confirms that sampling 
+            means and variances are unbiased estimators of their population counterparts, 
+            and that increasing \(n\) reduces the variability of sampling means 
+            as predicted by \(\text{Var}(\bar{X}) = \sigma^2/n\).
+        </p>
+    </section>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html> 
