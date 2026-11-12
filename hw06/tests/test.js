@@ -1,3 +1,4 @@
+import { riemannMidpoint, riemannTrapezoid, riemannSimpson, lebesgueIntegrate, convergenceAnalysis } from "../integration.js";
 import { FUNCTIONS } from "../functions.js";
 
 function testsFunctions() {
@@ -31,8 +32,126 @@ function testsFunctions() {
     console.log("\nFUNCTIONS tests passed.\n");
 }
 
+
+function testsRiemannMidpoint() {
+    console.log("Tests for riemannMidpoint()");
+
+    const r1 = riemannMidpoint(x => x * x, 0, 1, 10000);
+    console.assert(Math.abs(r1 - 1/3) < 1e-6, `Error: ∫x² should be 1/3, got ${r1}`);
+
+    const r2 = riemannMidpoint(x => Math.sin(x), 0, Math.PI, 10000);
+    console.assert(Math.abs(r2 - 2) < 1e-6, `Error: ∫sin(x) should be 2, got ${r2}`);
+
+    const r3 = riemannMidpoint(x => 1, 0, 1, 100);
+    console.assert(Math.abs(r3 - 1) < 1e-10, `Error: ∫1 should be 1, got ${r3}`);
+
+    const r4 = riemannMidpoint(x => x, 0, 1, 10000);
+    console.assert(Math.abs(r4 - 0.5) < 1e-6, `Error: ∫x should be 0.5, got ${r4}`);
+
+    const r5 = riemannMidpoint(x => x, 0, 1, 1);
+    console.assert(Math.abs(r5 - 0.5) < 1e-10, `Error: midpoint with n=1 should be 0.5, got ${r5}`);
+
+    console.log("\nriemannMidpoint() tests passed.\n");
+}
+
+function testsRiemannTrapezoid() {
+    console.log("Tests for riemannTrapezoid()");
+
+    const r1 = riemannTrapezoid(x => x * x, 0, 1, 10000);
+    console.assert(Math.abs(r1 - 1/3) < 1e-6, `Error: ∫x² should be 1/3, got ${r1}`);
+
+    const r2 = riemannTrapezoid(x => Math.sin(x), 0, Math.PI, 10000);
+    console.assert(Math.abs(r2 - 2) < 1e-6, `Error: ∫sin(x) should be 2, got ${r2}`);
+
+    const r3 = riemannTrapezoid(x => 2 * x + 1, 0, 1, 10);
+    console.assert(Math.abs(r3 - 2) < 1e-10, `Error: ∫(2x+1) should be 2, got ${r3}`);
+
+    const r4 = riemannTrapezoid(x => 1, 0, 1, 100);
+    console.assert(Math.abs(r4 - 1) < 1e-10, `Error: ∫1 should be 1, got ${r4}`);
+
+    console.log("\nriemannTrapezoid() tests passed.\n");
+}
+
+function testsRiemannSimpson() {
+    console.log("Tests for riemannSimpson()");
+
+    const r1 = riemannSimpson(x => x * x, 0, 1, 2);
+    console.assert(Math.abs(r1 - 1/3) < 1e-10, `Error: ∫x² should be 1/3, got ${r1}`);
+
+    const r2 = riemannSimpson(x => x * x * x, 0, 1, 2);
+    console.assert(Math.abs(r2 - 1/4) < 1e-10, `Error: ∫x³ should be 1/4, got ${r2}`);
+
+    const r3 = riemannSimpson(x => Math.sin(x), 0, Math.PI, 1000);
+    console.assert(Math.abs(r3 - 2) < 1e-8, `Error: ∫sin(x) should be 2, got ${r3}`);
+
+    const r4 = riemannSimpson(x => x * x, 0, 1, 3);
+    console.assert(Math.abs(r4 - 1/3) < 1e-10, `Error: Simpson with odd n should still work, got ${r4}`);
+
+    const n = 10;
+    const f = x => Math.sin(x);
+    const exact = 2;
+    const errMid = Math.abs(riemannMidpoint(f, 0, Math.PI, n) - exact);
+    const errTrap = Math.abs(riemannTrapezoid(f, 0, Math.PI, n) - exact);
+    const errSimp = Math.abs(riemannSimpson(f, 0, Math.PI, n) - exact);
+    console.assert(errSimp < errMid && errSimp < errTrap, `Error: Simpson should be more accurate than midpoint and trapezoid for n=${n}`);
+
+    console.log("\nriemannSimpson() tests passed.\n");
+}
+
+function testsLebesgueIntegrate() {
+    console.log("Tests for lebesgueIntegrate()");
+
+    const r1 = lebesgueIntegrate(x => x * x, 0, 1, 1000);
+    console.assert(Math.abs(r1 - 1/3) < 1e-2, `Error: ∫x² should be ~1/3, got ${r1}`);
+
+    const r2 = lebesgueIntegrate(x => Math.sin(x), 0, Math.PI, 1000);
+    console.assert(Math.abs(r2 - 2) < 1e-2, `Error: ∫sin(x) should be ~2, got ${r2}`);
+
+    const r3 = lebesgueIntegrate(x => 1, 0, 1, 100);
+    console.assert(Math.abs(r3 - 1) < 1e-6, `Error: ∫1 should be 1, got ${r3}`);
+
+    const r4 = lebesgueIntegrate(FUNCTIONS.dirichlet.f, 0, 1, 1000);
+    console.assert(Math.abs(r4) < 0.11, `Error: Dirichlet Lebesgue integral should be ~0, got ${r4}`);
+
+    console.log("\nlebesgueIntegrate() tests passed.\n");
+}
+
+function testsConvergenceAnalysis() {
+    console.log("Tests for convergenceAnalysis()");
+
+    const nValues = [10, 100, 1000];
+    const results = convergenceAnalysis(
+        x => Math.sin(x), 0, Math.PI, 2, nValues
+    );
+
+    console.assert(results.length === nValues.length, `Error: should have ${nValues.length} results`);
+
+    const errors = results.map(r => r.errorSimpson);
+    console.assert(errors[0] > errors[1] && errors[1] > errors[2], "Error: Simpson error should decrease as n increases");
+
+    results.forEach(r => {
+        console.assert(r.errorSimpson <= r.errorMidpoint + 1e-10, `Error: Simpson should be at least as accurate as midpoint for n=${r.n}`);
+    });
+
+    results.forEach(r => {
+        console.assert(typeof r.midpoint === 'number', "Error: midpoint should be a number");
+        console.assert(typeof r.trapezoid === 'number', "Error: trapezoid should be a number");
+        console.assert(typeof r.simpson === 'number', "Error: simpson should be a number");
+        console.assert(typeof r.lebesgue === 'number', "Error: lebesgue should be a number");
+        console.assert(r.errorMidpoint >= 0, "Error: errorMidpoint should be >= 0");
+        console.assert(r.errorSimpson >= 0, "Error: errorSimpson should be >= 0");
+    });
+
+    console.log("\nconvergenceAnalysis() tests passed.\n");
+}
+
 function runTests() {
     testsFunctions();
+    testsRiemannMidpoint();
+    testsRiemannTrapezoid();
+    testsRiemannSimpson();
+    testsLebesgueIntegrate();
+    testsConvergenceAnalysis();
     console.log("All tests passed.");
 }
 
