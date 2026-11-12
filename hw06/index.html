@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HW06 - Riemann, Lebesgue & Normal CDF</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+</head>
+<body>
+    <a href="../index.html" id="back-link">← Back to Homeworks</a>
+
+    <h1>Riemann & Lebesgue Integration and Normal CDF</h1>
+
+    <section id="ex1-theory">
+        <h2>Exercise 1 - Riemann and Lebesgue Integration</h2>
+        <p>
+            Two approaches to numerical integration are compared:
+        </p>
+        <ul>
+            <li>
+                <strong>Riemann approach:</strong> partition the domain \([a, b]\) 
+                into \(n\) subintervals of width \(h = (b-a)/n\) and approximate 
+                the integral as a sum of rectangles or trapezoids:
+                \[\int_a^b f(x)\,dx \approx \sum_{i=1}^n f(x_i^*) \cdot h\]
+                Three variants are implemented: midpoint (\(O(h^2)\)), 
+                trapezoid (\(O(h^2)\)), and Simpson (\(O(h^4)\)).
+            </li>
+            <li>
+                <strong>Lebesgue approach:</strong> partition the range \([f_{\min}, f_{\max}]\) 
+                into \(m\) horizontal levels and sum level * measure of preimage:
+                \[\int_a^b f(x)\,dx \approx \sum_{j=1}^m y_j \cdot \mu(\{x : f(x) > y_j\})\]
+                For pathological functions like the Dirichlet function, the Lebesgue 
+                integral exists while the Riemann integral does not.
+            </li>
+        </ul>
+    </section>
+
+    <section id="simulator">
+        <h2>Simulator</h2>
+        <div class="controls">
+            <label for="function-select">Function:</label>
+            <select id="function-select"></select>
+            <label for="n-input">n (Riemann partitions):</label>
+            <input type="number" id="n-input" value="1000" min="1" max="100000">
+            <label for="m-input">m (Lebesgue levels):</label>
+            <input type="number" id="m-input" value="100" min="1" max="1000">
+            <button id="compute-btn">Compute</button>
+        </div>
+        <p id="error-output" class="error"></p>
+    </section>
+
+    <section id="visualizations">
+        <h2>Visualizations</h2>
+        <div class="chart-grid">
+            <div class="chart-container">
+                <h3>Riemann Partitioning</h3>
+                <canvas id="canvas-riemann" width="500" height="300"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>Lebesgue Partitioning</h3>
+                <canvas id="canvas-lebesgue" width="500" height="300"></canvas>
+            </div>
+        </div>
+        <div class="chart-container">
+            <h3>Convergence Analysis (log-log scale)</h3>
+            <canvas id="canvas-convergence" width="1000" height="300"></canvas>
+        </div>
+    </section>
+
+    <section id="ex1-results">
+        <h2>Integration Results</h2>
+        <div id="integration-results">
+            <p class="placeholder">Click "Compute" to see results.</p>
+        </div>
+    </section>
+
+    <section id="ex2-theory">
+        <h2>Exercise 2 - Numerical Computation of the Normal CDF</h2>
+        <p>
+            The CDF of the standard normal distribution is:
+            \[\Phi(x) = \int_{-\infty}^x \frac{1}{\sqrt{2\pi}} e^{-t^2/2}\,dt\]
+        </p>
+        <p>
+            This integral cannot be expressed in terms of elementary functions. 
+            By <strong>Liouville's theorem</strong>, the antiderivative of 
+            \(e^{-x^2}\) is not an elementary function, it cannot be written 
+            as a finite combination of polynomials, exponentials, logarithms, 
+            and trigonometric functions.
+        </p>
+        <p>
+            The <strong>error function</strong> provides an exact analytical representation:
+            \[\text{erf}(x) = \frac{2}{\sqrt{\pi}} \int_0^x e^{-t^2}\,dt\]
+            \[\Phi(x) = \frac{1}{2}\left(1 + \text{erf}\left(\frac{x}{\sqrt{2}}\right)\right)\]
+        </p>
+        <p>
+            Three numerical approaches are implemented and compared:
+        </p>
+        <ul>
+            <li>
+                <strong>Simpson's rule:</strong> direct numerical integration of 
+                the Gaussian PDF from \(-8\) to \(x\). Error \(O(h^4)\).
+            </li>
+            <li>
+                <strong>Erf series expansion:</strong> Taylor series of the error function:
+                \[\text{erf}(x) = \frac{2}{\sqrt{\pi}} \sum_{n=0}^\infty \frac{(-1)^n x^{2n+1}}{n!(2n+1)}\]
+            </li>
+            <li>
+                <strong>Rational approximation (Abramowitz & Stegun 26.2.17):</strong>
+                maximum error \(|\varepsilon(x)| &lt; 7.5 \times 10^{-8}\), 
+                computationally very efficient.
+            </li>
+        </ul>
+    </section>
+
+    <section id="cdf-visualization">
+        <h2>Normal CDF - Three Methods</h2>
+        <div class="chart-container">
+            <canvas id="canvas-cdf" width="800" height="350"></canvas>
+            <div class="legend">
+                <span style="color: #58a6ff;">- Simpson</span>
+                <span style="color: #2ea043;">- Erf Series</span>
+                <span style="color: #f78166;">- Rational (A&S)</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="ex2-results">
+        <h2>CDF Results</h2>
+        <div id="cdf-results">
+            <p class="placeholder">Loading...</p>
+        </div>
+    </section>
+
+    <section id="discussion">
+        <h2>Discussion</h2>
+        <ul>
+            <li>
+                <strong>Riemann vs Lebesgue accuracy:</strong> for smooth functions, 
+                both converge to the same value. Simpson's rule converges faster 
+                (\(O(h^4)\)) than midpoint or trapezoid (\(O(h^2)\)). The Lebesgue 
+                approach is less accurate for the same number of partitions but 
+                handles discontinuities more naturally.
+            </li>
+            <li>
+                <strong>Pathological functions:</strong> the Dirichlet function 
+                \(\mathbf{1}_\mathbb{Q}\) is not Riemann-integrable (upper and lower 
+                sums never agree) but is Lebesgue-integrable with value 0 
+                (rationals have measure zero). Thomae's function is Riemann-integrable 
+                (discontinuous only on a set of measure zero) with value 0.
+            </li>
+            <li>
+                <strong>Normal CDF methods:</strong> the rational approximation 
+                (Abramowitz & Stegun) is the most efficient, constant time, 
+                maximum error \(7.5 \times 10^{-8}\). The erf series converges 
+                quickly for small \(|x|\) but slowly for large \(|x|\). 
+                Simpson's rule is straightforward but requires many evaluations 
+                for high accuracy.
+            </li>
+            <li>
+                <strong>Why erf is necessary:</strong> Liouville's theorem proves 
+                that \(e^{-x^2}\) has no elementary antiderivative, so numerical 
+                methods or special functions are always required for practical 
+                computation of \(\Phi(x)\).
+            </li>
+        </ul>
+    </section>
+
+    <section id="conclusion">
+        <h2>Conclusion</h2>
+        <p>
+            The Riemann and Lebesgue approaches to integration are mathematically 
+            equivalent for well-behaved functions, but differ fundamentally for 
+            pathological cases. Lebesgue integration, by partitioning the range 
+            rather than the domain, can assign a meaningful value to functions 
+            that are not Riemann-integrable. For the normal CDF, all three numerical 
+            methods agree to high precision, confirming the correctness of the 
+            implementations. The rational approximation is recommended for practical 
+            use due to its efficiency and guaranteed error bound.
+        </p>
+    </section>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html> 
