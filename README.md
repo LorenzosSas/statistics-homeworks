@@ -13,6 +13,7 @@ Weekly homework assignments for the Statistics course - M.Sc. in Cybersecurity, 
 - [HW03 - ECC Encryption & Caesar Cyper](https://lorenzossas.github.io/statistics-homeworks/hw03)
 - [HW04 - Stochastic Penetration Model](https://lorenzossas.github.io/statistics-homeworks/hw04)
 - [HW05 - Welford's Algorithm & Sampling Statistics](https://lorenzossas.github.io/statistics-homeworks/hw05)
+- [HW06 - Riemann & Lebesgue Integration and Normal CDF](https://lorenzossas.github.io/statistics-homeworks/hw06)
 
 ## Tech Stack
 
