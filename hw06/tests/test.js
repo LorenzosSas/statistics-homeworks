@@ -1,4 +1,5 @@
 import { riemannMidpoint, riemannTrapezoid, riemannSimpson, lebesgueIntegrate, convergenceAnalysis } from "../integration.js";
+import { normalCDFSimpson, normalCDFErf, normalCDFRational, compareMethods, erfConvergence, simpsonConvergence } from "../normalcdf.js";
 import { FUNCTIONS } from "../functions.js";
 
 function testsFunctions() {
@@ -145,6 +146,105 @@ function testsConvergenceAnalysis() {
     console.log("\nconvergenceAnalysis() tests passed.\n");
 }
 
+function testsNormalCDFSimpson() {
+    console.log("Tests for normalCDFSimpson()");
+
+    console.assert(Math.abs(normalCDFSimpson(0) - 0.5) < 1e-6, `Error: CDF(0) should be 0.5, got ${normalCDFSimpson(0)}`);
+
+    console.assert(Math.abs(normalCDFSimpson(1.96) - 0.975) < 1e-3, `Error: CDF(1.96) should be ~0.975, got ${normalCDFSimpson(1.96)}`);
+
+    console.assert(Math.abs(normalCDFSimpson(-1.96) - 0.025) < 1e-3, `Error: CDF(-1.96) should be ~0.025, got ${normalCDFSimpson(-1.96)}`);
+
+    const vals = [-3, -2, -1, 0, 1, 2, 3].map(x => normalCDFSimpson(x));
+    for (let i = 1; i < vals.length; i++) {
+        console.assert(vals[i] > vals[i-1], `Error: CDF should be monotonically increasing`);
+    }
+
+    [-5, -3, 0, 3, 5].forEach(x => {
+        const v = normalCDFSimpson(x);
+        console.assert(v >= 0 && v <= 1, `Error: CDF(${x}) should be in [0,1], got ${v}`);
+    });
+
+    console.log("\nnormalCDFSimpson() tests passed.\n");
+}
+
+function testsNormalCDFErf() {
+    console.log("Tests for normalCDFErf()");
+
+    console.assert(Math.abs(normalCDFErf(0) - 0.5) < 1e-6, `Error: CDF(0) should be 0.5, got ${normalCDFErf(0)}`);
+
+    console.assert(Math.abs(normalCDFErf(1.96) - 0.975) < 1e-4, `Error: CDF(1.96) should be ~0.975, got ${normalCDFErf(1.96)}`);
+
+    [1, 2, 3].forEach(x => {
+        const sym = Math.abs(normalCDFErf(-x) - (1 - normalCDFErf(x)));
+        console.assert(sym < 1e-6, `Error: CDF(-${x}) should be 1 - CDF(${x}), diff=${sym}`);
+    });
+
+    console.log("\nnormalCDFErf() tests passed.\n");
+}
+
+function testsNormalCDFRational() {
+    console.log("Tests for normalCDFRational()");
+
+    console.assert(Math.abs(normalCDFRational(0) - 0.5) < 1e-7, `Error: CDF(0) should be 0.5, got ${normalCDFRational(0)}`);
+
+    console.assert(Math.abs(normalCDFRational(1.96) - 0.975) < 1e-4, `Error: CDF(1.96) should be ~0.975, got ${normalCDFRational(1.96)}`);
+
+    console.assert(Math.abs(normalCDFRational(-1.96) - 0.025) < 1e-4, `Error: CDF(-1.96) should be ~0.025, got ${normalCDFRational(-1.96)}`);
+
+    [1, 2, 3].forEach(x => {
+        const sym = Math.abs(normalCDFRational(-x) - (1 - normalCDFRational(x)));
+        console.assert(sym < 1e-7, `Error: symmetry failed for x=${x}, diff=${sym}`);
+    });
+
+    console.log("\nnormalCDFRational() tests passed.\n");
+}
+
+function testsCompareMethods() {
+    console.log("Tests for compareMethods()");
+
+    const xValues = [-2, -1, 0, 1, 2];
+    const results = compareMethods(xValues);
+
+    console.assert(results.length === xValues.length, `Error: should have ${xValues.length} results`);
+
+    results.forEach(r => {
+        console.assert(Math.abs(r.simpson - r.rational) < 1e-4, `Error: Simpson and rational should agree at x=${r.x}`);
+        console.assert(Math.abs(r.erf - r.rational) < 1e-4, `Error: Erf and rational should agree at x=${r.x}`);
+        console.assert(r.diffSimpsonRational >= 0, "Error: diffSimpsonRational should be >= 0");
+        console.assert(r.diffErfRational >= 0, "Error: diffErfRational should be >= 0");
+    });
+
+    console.log("\ncompareMethods() tests passed.\n");
+}
+
+function testsErfConvergence() {
+    console.log("Tests for erfConvergence()");
+
+    const results = erfConvergence(1, 30);
+    console.assert(results.length === 30, `Error: should have 30 results, got ${results.length}`);
+
+    const firstError = results[0].error;
+    const lastError = results[results.length - 1].error;
+    console.assert(lastError < firstError, `Error: error should decrease with more terms`);
+
+    console.log("\nerfConvergence() tests passed.\n");
+}
+
+function testsSimpsonConvergence() {
+    console.log("Tests for simpsonConvergence()");
+
+    const nValues = [10, 100, 1000];
+    const results = simpsonConvergence(1, nValues);
+
+    console.assert(results.length === nValues.length, `Error: should have ${nValues.length} results`);
+
+    const errors = results.map(r => r.error);
+    console.assert(errors[0] > errors[1] && errors[1] > errors[2], "Error: Simpson CDF error should decrease as n increases");
+
+    console.log("\nsimpsonConvergence() tests passed.\n");
+}
+
 function runTests() {
     testsFunctions();
     testsRiemannMidpoint();
@@ -152,6 +252,12 @@ function runTests() {
     testsRiemannSimpson();
     testsLebesgueIntegrate();
     testsConvergenceAnalysis();
+    testsNormalCDFSimpson();
+    testsNormalCDFErf();
+    testsNormalCDFRational();
+    testsCompareMethods();
+    testsErfConvergence();
+    testsSimpsonConvergence();
     console.log("All tests passed.");
 }
 
