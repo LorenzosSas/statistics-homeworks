@@ -27,7 +27,8 @@ function validateInputs(n, m) {
 }
 
 function renderIntegrationResults(fn, n, m) {
-    const {f, a, b, exact, description} = fn;
+    const {f, domain, exact, description} = fn;
+    const [a, b] = domain;
 
     const midpoint = riemannMidpoint(f, a, b, n);
     const trapezoid = riemannTrapezoid(f, a, b, n);
@@ -174,7 +175,5 @@ functionSelect.addEventListener('change', () => {
 nInput.value = 1000;
 mInput.value = 100;
 
-const defaultFn = FUNCTIONS[functionSelect.value || 'sin'];
-drawRiemann('canvas-riemann', defaultFn.f, defaultFn.domain[0], defaultFn.domain[1], 20, 'midpoint');
-drawLebesgue('canvas-lebesgue', defaultFn.f, defaultFn.domain[0], defaultFn.domain[1], 10);
+renderIntegrationResults(FUNCTIONS[functionSelect.value], 1000, 1000);
 renderCDFResults();
