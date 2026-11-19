@@ -1,5 +1,6 @@
 import { parseCSV, discretize, DATASETS } from "../datasets.js";
 import { prepareData, buildContingencyTable, expectedFrequencies, chiSquareStatistic, interpret } from "../contingency.js";
+import { chiSquareCDF, chiSquarePValue, chiSquarePDF, criticalValue } from "../chiSquare.js";
 
 function testsDATASETS() {
     console.log("Tests for DATASETS");
@@ -245,6 +246,138 @@ function testsInterpret() {
     console.log("\ninterpret() tests passed.\n");
 }
 
+function testsChiSquareCDF() {
+    console.log("Tests for chiSquareCDF()");
+
+    console.assert(chiSquareCDF(0, 1) === 0, "Error: CDF(0) should be 0");
+    console.assert(chiSquareCDF(0, 5) === 0, "Error: CDF(0, 5) should be 0");
+
+    [1, 2, 5, 10].forEach(k => {
+        [0.1, 1, 3, 5, 10].forEach(x => {
+            const v = chiSquareCDF(x, k);
+            console.assert(v >= 0 && v <= 1, `Error: CDF(${x}, ${k}) should be in [0,1], got ${v}`);
+        });
+    });
+
+    const vals = [1, 2, 3, 4, 5].map(x => chiSquareCDF(x, 2));
+    for (let i = 1; i < vals.length; i++) {
+        console.assert(vals[i] > vals[i-1], `Error: CDF should be monotonically increasing`);
+    }
+
+    console.assert(Math.abs(chiSquareCDF(3.841, 1) - 0.95) < 0.01, `Error: CDF(3.841, 1) should be ~0.95, got ${chiSquareCDF(3.841, 1)}`);
+
+    console.assert(Math.abs(chiSquareCDF(5.991, 2) - 0.95) < 0.01, `Error: CDF(5.991, 2) should be ~0.95, got ${chiSquareCDF(5.991, 2)}`);
+
+    console.assert(chiSquareCDF(-1, 1) === 0, "Error: CDF(-1) should be 0");
+
+    let threw = false;
+    try {chiSquareCDF(1, 0);} catch(e) {threw = true;}
+    console.assert(threw, "Error: df=0 should throw");
+
+    console.log("\nchiSquareCDF() tests passed.\n");
+}
+
+function testsChiSquarePValue() {
+    console.log("Tests for chiSquarePValue()");
+
+    [1, 2, 5].forEach(k => {
+        [0, 1, 3, 10].forEach(x => {
+            const p = chiSquarePValue(x, k);
+            console.assert(p >= 0 && p <= 1, `Error: p-value(${x}, ${k}) should be in [0,1], got ${p}`);
+        });
+    });
+
+    console.assert(Math.abs(chiSquarePValue(0, 1) - 1) < 0.01, `Error: p-value(0) should be ~1, got ${chiSquarePValue(0, 1)}`);
+
+    console.assert(chiSquarePValue(100, 1) < 0.001, `Error: p-value(100, 1) should be ~0`);
+
+    console.assert(Math.abs(chiSquarePValue(3.841, 1) - 0.05) < 0.01, `Error: p-value(3.841, 1) should be ~0.05, got ${chiSquarePValue(3.841, 1)}`);
+
+    let threw = false;
+    try {chiSquarePValue(-1, 1);} catch(e) {threw = true;}
+    console.assert(threw, "Error: negative chi2 should throw");
+
+    threw = false;
+    try {chiSquarePValue(1, 0);} catch(e) {threw = true;}
+    console.assert(threw, "Error: df=0 should throw");
+
+    const pVals = [1, 3, 5, 10].map(x => chiSquarePValue(x, 2));
+    for (let i = 1; i < pVals.length; i++) {
+        console.assert(pVals[i] < pVals[i-1], "Error: p-value should decrease as chi2 increases");
+    }
+
+    console.log("\nchiSquarePValue() tests passed.\n");
+}
+
+function testsChiSquarePDF() {
+    console.log("Tests for chiSquarePDF()");
+
+    console.assert(chiSquarePDF(0, 3) === 0, "Error: PDF(0, 3) should be 0");
+    console.assert(chiSquarePDF(0, 1) === 0, "Error: PDF(0, 1) should be 0 (x<=0)");
+
+    [1, 2, 5].forEach(k => {
+        [0.1, 1, 3, 5].forEach(x => {
+            console.assert(chiSquarePDF(x, k) >= 0, `Error: PDF(${x}, ${k}) should be >= 0`);
+        });
+    });
+
+    console.assert(chiSquarePDF(-1, 1) === 0, "Error: PDF(-1) should be 0");
+
+    console.log("\nchiSquarePDF() tests passed.\n");
+}
+
+function testsCriticalValue() {
+    console.log("Tests for criticalValue()");
+
+    console.assert(Math.abs(criticalValue(0.05, 1) - 3.841) < 0.001, `Error: critical value (0.05, 1) should be 3.841`);
+    console.assert(Math.abs(criticalValue(0.05, 2) - 5.991) < 0.001, `Error: critical value (0.05, 2) should be 5.991`);
+    console.assert(Math.abs(criticalValue(0.01, 1) - 6.635) < 0.001, `Error: critical value (0.01, 1) should be 6.635`);
+    console.assert(Math.abs(criticalValue(0.10, 1) - 2.706) < 0.001, `Error: critical value (0.10, 1) should be 2.706`);
+
+    console.assert(criticalValue(0.05, 11) === null, "Error: df=11 should return null");
+    console.assert(criticalValue(0.05, 0) === null, "Error: df=0 should return null");
+
+    let threw = false;
+    try {criticalValue(0.03, 1);} catch(e) {threw = true;}
+    console.assert(threw, "Error: alpha=0.03 should throw");
+
+    const vals = [1, 2, 3, 4, 5].map(df => criticalValue(0.05, df));
+    for (let i = 1; i < vals.length; i++) {
+        console.assert(vals[i] > vals[i-1], "Error: critical values should increase with df");
+    }
+
+    console.log("\ncriticalValue() tests passed.\n");
+}
+
+function testsFullPipeline() {
+    console.log("Tests for full pipeline");
+
+    const indepDs = DATASETS.independent;
+    const prepared = prepareData(indepDs.data, indepDs.type);
+    const table = buildContingencyTable(prepared);
+    const expected = expectedFrequencies(table);
+    const {chi2, degreesOfFreedom} = chiSquareStatistic(table, expected);
+    const pValue = chiSquarePValue(chi2, degreesOfFreedom);
+
+    console.assert(chi2 < 1e-6, `Error: independent dataset should have chi2 ≈ 0, got ${chi2}`);
+    console.assert(pValue > 0.99, `Error: independent dataset should have p ≈ 1, got ${pValue}`);
+
+    const result = interpret(chi2, degreesOfFreedom, pValue);
+    console.assert(result.isDependent === false, "Error: independent dataset should be classified as independent");
+
+    const depDs = DATASETS.smoking;
+    const preparedDep = prepareData(depDs.data, depDs.type);
+    const tableDep = buildContingencyTable(preparedDep);
+    const expectedDep = expectedFrequencies(tableDep);
+    const {chi2: chi2Dep, degreesOfFreedom: dfDep} = chiSquareStatistic(tableDep, expectedDep);
+    const pValueDep = chiSquarePValue(chi2Dep, dfDep);
+
+    console.assert(chi2Dep > 0, `Error: smoking dataset should have chi2 > 0, got ${chi2Dep}`);
+    console.assert(pValueDep < 0.05, `Error: smoking dataset should have p < 0.05, got ${pValueDep}`);
+    
+    console.log("\nFull pipeline tests passed.\n");
+}
+
 function runTests() {
     testsDATASETS();
     testsParseCSV();
@@ -254,6 +387,11 @@ function runTests() {
     testsExpectedFrequencies();
     testsChiSquareStatistic();
     testsInterpret();
+    testsChiSquareCDF();
+    testsChiSquarePValue();
+    testsChiSquarePDF();
+    testsCriticalValue();
+    testsFullPipeline();
     console.log("All tests passed.");
 }
 

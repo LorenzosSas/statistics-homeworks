@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HW07 - Statistical Independence</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+</head>
+<body>
+    <a href="../" id="back-link">← Back to Homeworks</a>
+
+    <h1>Statistical Independence & Contingency Tables</h1>
+
+    <section id="theory">
+        <h2>Theoretical Background</h2>
+        <p>
+            Two random variables \(X\) and \(F\) are <strong>statistically independent</strong> if and only if:
+            \[P(X = x, F = f) = P(X = x) \cdot P(F = f) \quad \forall x, f\]
+            Equivalently, \(P(F = f \mid X = x) = P(F = f)\) for all \(x, f\).
+        </p>
+        <p>
+            Given a sample of \(n\) observations, independence is tested using the 
+            <strong>chi-square test</strong>:
+        </p>
+        <ul>
+            <li>
+                <strong>Observed frequencies</strong> \(O_{ij}\): count of observations 
+                with \(X = x_i\) and \(F = f_j\).
+            </li>
+            <li>
+                <strong>Expected frequencies under independence</strong>:
+                \[E_{ij} = \frac{R_i \cdot C_j}{n}\]
+                where \(R_i\) is the \(i\)-th row total and \(C_j\) is the \(j\)-th column total.
+            </li>
+            <li>
+                <strong>Chi-square statistic</strong>:
+                \[\chi^2 = \sum_{i,j} \frac{(O_{ij} - E_{ij})^2}{E_{ij}}\]
+                Under \(H_0\) (independence), \(\chi^2 \sim \chi^2_{(r-1)(c-1)}\).
+            </li>
+            <li>
+                <strong>P-value</strong>: \(p = P(\chi^2_{df} > \chi^2_{\text{obs}})\).
+                If \(p < \alpha\), reject \(H_0\) and conclude dependence.
+            </li>
+        </ul>
+        <p>
+            <strong>Important:</strong> statistical association does not imply causality. 
+            A significant chi-square test only indicates that the variables are not 
+            independent in the sample, it does not establish a causal relationship.
+        </p>
+    </section>
+
+    <section id="data-input">
+        <h2>Data Input</h2>
+
+        <div class="controls">
+            <label for="dataset-select">Predefined dataset:</label>
+            <select id="dataset-select"></select>
+        </div>
+
+        <p class="separator">- or paste your own CSV -</p>
+
+        <div class="controls">
+            <textarea id="csv-input" rows="5"
+                placeholder="Paste CSV data here. First row = header. Example:&#10;Gender,Disease&#10;Male,Yes&#10;Female,No&#10;..."></textarea>
+        </div>
+        <div class="controls">
+            <button id="csv-parse-btn">Parse CSV</button>
+        </div>
+
+        <div id="data-preview" class="info-block placeholder">No data loaded.</div>
+        <div id="variables-info" class="info-block"></div>
+
+        <div class="controls" style="margin-top: 1rem;">
+            <label for="num-bins-input">Bins for continuous variables:</label>
+            <input type="number" id="num-bins-input" value="4" min="2" max="20">
+            <label for="alpha-input">Significance level α:</label>
+            <select id="alpha-input">
+                <option value="0.10">0.10</option>
+                <option value="0.05" selected>0.05</option>
+                <option value="0.01">0.01</option>
+            </select>
+            <button id="compute-btn">Compute</button>
+        </div>
+        <p id="error-output" class="error"></p>
+    </section>
+
+    <section id="contingency-section">
+        <h2>Contingency Table</h2>
+        <p>
+            Observed frequencies \(O_{ij}\), expected frequencies \(E_{ij}\) 
+            under independence, and chi-square contributions \(\frac{(O-E)^2}{E}\).
+        </p>
+        <div id="contingency-output">
+            <p class="placeholder">Run the analysis to see the contingency table.</p>
+        </div>
+    </section>
+
+    <section id="marginal-section">
+        <h2>Marginal Frequencies</h2>
+        <div id="marginal-output">
+            <p class="placeholder">Run the analysis to see marginal frequencies.</p>
+        </div>
+    </section>
+
+    <section id="conditional-section">
+        <h2>Conditional Frequencies \(P(F \mid X)\)</h2>
+        <p>
+            If \(X\) and \(F\) are independent, the conditional distribution 
+            \(P(F \mid X = x)\) should be the same for all \(x\).
+        </p>
+        <div id="conditional-output">
+            <p class="placeholder">Run the analysis to see conditional frequencies.</p>
+        </div>
+    </section>
+
+    <section id="chisquare-section">
+        <h2>Chi-square Test</h2>
+        <div class="chart-grid">
+            <div id="chisquare-output">
+                <p class="placeholder">Run the analysis to see chi-square results.</p>
+            </div>
+            <div class="chart-container">
+                <h3>Chi-square Distribution</h3>
+                <canvas id="canvas-chisquare" width="400" height="250"></canvas>
+                <p class="table-legend">
+                    Blue: χ² PDF; Red dashed: observed χ²; Red area: p-value
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section id="discussion">
+        <h2>Discussion</h2>
+        <ul>
+            <li>
+                <strong>Independence vs dependence:</strong> under independence, 
+                observed and expected frequencies should be close, large deviations 
+                indicate association. The chi-square statistic measures the total 
+                squared deviation, normalized by expected frequency.
+            </li>
+            <li>
+                <strong>Continuous variables:</strong> when variables are continuous, 
+                they are discretized into bins before building the contingency table. 
+                The choice of number of bins affects the result, too few bins lose 
+                information, too many bins produce low expected frequencies 
+                (violating the chi-square approximation rule: \(E_{ij} \geq 5\)).
+            </li>
+            <li>
+                <strong>Association vs causality:</strong> a significant chi-square 
+                test indicates statistical association, not causality. The classic 
+                example: ice cream sales and drowning rates are correlated (both 
+                increase in summer) but neither causes the other, a confounding 
+                variable (temperature) explains both.
+            </li>
+            <li>
+                <strong>Sample size:</strong> with very large samples, even tiny 
+                and practically irrelevant associations become statistically significant. 
+                Effect size measures (such as Cramér's V) complement the p-value 
+                by quantifying the strength of association.
+            </li>
+        </ul>
+    </section>
+
+    <section id="conclusion">
+        <h2>Conclusion</h2>
+        <p>
+            The chi-square test of independence is a powerful tool for detecting 
+            statistical association between categorical variables. By comparing 
+            observed frequencies with those expected under independence, it quantifies 
+            how much the data deviates from the independence hypothesis. However, 
+            statistical significance must always be interpreted in context: association 
+            is not causation, and practical significance may differ from statistical 
+            significance.
+        </p>
+    </section>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>
